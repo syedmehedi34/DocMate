@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
+import {
   HomeIcon,
   UserGroupIcon,
   CalendarIcon,
@@ -13,7 +13,7 @@ import {
   BriefcaseIcon,
   ArrowLeftOnRectangleIcon,
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 
 export default function DashboardSidebar() {
@@ -35,7 +35,6 @@ export default function DashboardSidebar() {
         });
     }
   }, [role, appliedDoctor, update]);
-  
 
   // Modal and form states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,22 +50,50 @@ export default function DashboardSidebar() {
     admin: [
       { name: "Dashboard", href: "/dashboard/admin/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/admin/profile", icon: UserIcon },
-      { name: "All Users", href: "/dashboard/admin/users", icon: UserGroupIcon },
-      { name: "All Doctors", href: "/dashboard/admin/doctors", icon: UserGroupIcon },
-      { name: "All Patients", href: "/dashboard/admin/patients", icon: UserGroupIcon },
-      { name: "Pending Doctors", href: "/dashboard/admin/pendingDoctor", icon: DocumentTextIcon },
+      {
+        name: "All Users",
+        href: "/dashboard/admin/users",
+        icon: UserGroupIcon,
+      },
+      {
+        name: "All Doctors",
+        href: "/dashboard/admin/doctors",
+        icon: UserGroupIcon,
+      },
+      {
+        name: "All Patients",
+        href: "/dashboard/admin/patients",
+        icon: UserGroupIcon,
+      },
+      {
+        name: "Pending Doctors",
+        href: "/dashboard/admin/pendingDoctor",
+        icon: DocumentTextIcon,
+      },
     ],
     doctor: [
       { name: "Dashboard", href: "/dashboard/doctor/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/doctor/profile", icon: UserIcon },
-      { name: "Patients", href: "/dashboard/doctor/patients", icon: UserGroupIcon },
-      { name: "Pending Appointments", href: "/dashboard/doctor/appointments", icon: CalendarIcon },
+      {
+        name: "Patients",
+        href: "/dashboard/doctor/patients",
+        icon: UserGroupIcon,
+      },
+      {
+        name: "Pending Appointments",
+        href: "/dashboard/doctor/appointments",
+        icon: CalendarIcon,
+      },
     ],
     user: [
       { name: "Dashboard", href: "/dashboard/user/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/user/profile", icon: UserIcon },
       { name: "Doctors", href: "/dashboard/user/doctors", icon: HeartIcon },
-      { name: "Appointments", href: "/dashboard/user/allAppointment", icon: CalendarIcon },
+      {
+        name: "Appointments",
+        href: "/dashboard/user/allAppointment",
+        icon: CalendarIcon,
+      },
     ],
   };
 
@@ -103,10 +130,13 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col h-auto border-r border-slate-700">
+    <aside className="w-64 bg-linear-to-b from-slate-800 to-slate-900 text-white flex flex-col h-auto border-r border-slate-700">
       {/* Header Section */}
       <div className="p-6 border-b border-slate-700">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold hover:text-blue-400 transition-colors">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-lg font-bold hover:text-blue-400 transition-colors"
+        >
           <HomeIcon className="w-5 h-5" />
           Main Home
         </Link>
@@ -114,8 +144,8 @@ export default function DashboardSidebar() {
 
       {/* User Profile Preview */}
       <div className="p-6 flex items-center gap-4 border-b border-slate-700">
-        <img 
-          src={session?.user?.image || "https://i.ibb.co/33gs5fP/user.png"} 
+        <img
+          src={session?.user?.image || "https://i.ibb.co/33gs5fP/user.png"}
           className="w-10 h-10 rounded-full border-2 border-blue-400"
           alt="User avatar"
         />
@@ -130,19 +160,23 @@ export default function DashboardSidebar() {
         {menuLinks[role]?.map((link) => {
           const isActive = pathname === link.href;
           const Icon = link.icon;
-          
+
           return (
             <Link key={link.href} href={link.href}>
-              <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive 
-                  ? "bg-blue-600/20 text-blue-400 border-l-4 border-blue-400"
-                  : "hover:bg-slate-700/50 hover:border-l-4 hover:border-slate-600"
-              }`}>
-                <Icon className={`w-5 h-5 ${isActive ? "text-blue-400" : "text-slate-400"}`} />
+              <div
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive
+                    ? "bg-blue-600/20 text-blue-400 border-l-4 border-blue-400"
+                    : "hover:bg-slate-700/50 hover:border-l-4 hover:border-slate-600"
+                }`}
+              >
+                <Icon
+                  className={`w-5 h-5 ${isActive ? "text-blue-400" : "text-slate-400"}`}
+                />
                 <span className="text-sm font-medium">{link.name}</span>
               </div>
             </Link>
-          )
+          );
         })}
 
         {/* Apply as Doctor Button */}
@@ -177,7 +211,7 @@ export default function DashboardSidebar() {
                 <BriefcaseIcon className="w-6 h-6 text-blue-400" />
                 Doctor Application
               </h2>
-              <button 
+              <button
                 onClick={handleCloseModal}
                 className="p-1 hover:bg-slate-700 rounded-full"
               >

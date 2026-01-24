@@ -25,17 +25,18 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!validate.name.test(name)) {
       newErrors.name = "Please enter a valid name (2-30 characters)";
     }
-    
+
     if (!validate.email.test(email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!validate.password.test(password)) {
-      newErrors.password = "Password must contain at least 8 characters, one uppercase, one lowercase, and one number";
+      newErrors.password =
+        "Password must contain at least 8 characters, one uppercase, one lowercase, and one number";
     }
 
     setErrors(newErrors);
@@ -99,12 +100,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex min-h-screen bg-linear-to-br from-gray-50 to-blue-50">
       {/* Left column (form) */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md rounded-2xl p-8 transition-all duration-300 ">
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Create Account
+            </h1>
             <p className="text-gray-600">Join our community today</p>
           </div>
 
@@ -186,7 +189,8 @@ export default function RegisterPage() {
                 )}
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                Must be at least 8 characters with uppercase, lowercase, and number
+                Must be at least 8 characters with uppercase, lowercase, and
+                number
               </p>
             </div>
 

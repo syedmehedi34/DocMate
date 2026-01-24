@@ -14,15 +14,16 @@ export default function Navbar() {
 
   const navigation = [
     { name: "Home", href: "/" },
-   // { name: "Features", href: "/features" },
+    // { name: "Features", href: "/features" },
     { name: "Contact", href: "/pages/contact" },
     { name: "All Doctors", href: "/pages/alldoctors" },
     //{ name: "Contact", href: "/contact" },
     { name: "About Us", href: "/pages/about" },
     { name: "Nexa", href: "/pages/Nexa" },
-   // ...(session ? [{ name: "Add Doctor", href: "/pages/addDoctor" }] : []),
-    ...(session ? [{ name: "Dashboard", href: `/dashboard/${session?.user?.role}/home` }] : []),
-    
+    // ...(session ? [{ name: "Add Doctor", href: "/pages/addDoctor" }] : []),
+    ...(session
+      ? [{ name: "Dashboard", href: `/dashboard/${session?.user?.role}/home` }]
+      : []),
   ];
 
   const closeMenu = () => setIsOpen(false);
@@ -30,7 +31,7 @@ export default function Navbar() {
   const isActive = (href) => pathname === href;
 
   return (
-    <nav className="bg-gradient-to-r py-1 sticky top-0 z-50 opacity-90 from-[#042020] via-[#1e4046] to-[#0EA5E9] shadow-lg">
+    <nav className="bg-linear-to-r py-1 sticky top-0 z-50 opacity-90 from-[#042020] via-[#1e4046] to-[#0EA5E9] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -104,18 +105,14 @@ export default function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle navigation menu"
           >
-            {isOpen ? (
-              <X className="h-8 w-8" />
-            ) : (
-              <Menu className="h-8 w-8" />
-            )}
+            {isOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
       <div
-        className={`md:hidden bg-gradient-to-b from-[#042020] to-[#1e4046] overflow-hidden transition-all duration-300 ease-out ${
+        className={`md:hidden bg-linear-to-b from-[#042020] to-[#1e4046] overflow-hidden transition-all duration-300 ease-out ${
           isOpen ? "max-h-96" : "max-h-0"
         }`}
       >

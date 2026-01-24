@@ -23,31 +23,31 @@ export default function LoginPage() {
         password,
         redirect: false,
       });
-      
+
       if (result?.ok) {
         await Swal.fire({
-          icon: 'success',
-          title: 'Login Successful!',
-          text: 'Redirecting to dashboard...',
+          icon: "success",
+          title: "Login Successful!",
+          text: "Redirecting to dashboard...",
           timer: 1500,
           showConfirmButton: false,
-          timerProgressBar: true
+          timerProgressBar: true,
         });
         router.push("/");
       } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Login Failed',
-          text: 'Invalid email or password',
-          confirmButtonColor: '#2563eb',
+          icon: "error",
+          title: "Login Failed",
+          text: "Invalid email or password",
+          confirmButtonColor: "#2563eb",
         });
       }
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'An unexpected error occurred',
-        confirmButtonColor: '#2563eb',
+        icon: "error",
+        title: "Error",
+        text: "An unexpected error occurred",
+        confirmButtonColor: "#2563eb",
       });
     } finally {
       setIsLoading(false);
@@ -55,12 +55,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen  bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex min-h-screen  bg-linear-to-br from-gray-50 to-blue-50">
       {/* Left column (form) */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md border-none p-8 transition-all duration-300 ">
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h1>
             <p className="text-gray-600">Sign in to continue to your account</p>
           </div>
 

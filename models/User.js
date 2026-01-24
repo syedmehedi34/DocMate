@@ -33,9 +33,16 @@ const UserSchema = new mongoose.Schema({
   },
   doctorCategory: {
     type: String,
-    enum: ["general", "cardiology", "dermatology", "neurology", "pediatrics", "other"],
+    enum: [
+      "general",
+      "cardiology",
+      "dermatology",
+      "neurology",
+      "pediatrics",
+      "other",
+    ],
   },
-  
+
   appliedDoctor: {
     type: Boolean,
     default: false,
