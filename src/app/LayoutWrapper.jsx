@@ -10,7 +10,13 @@ export default function LayoutWrapper({ children }) {
 
   return (
     <>
-      <div className="h-[72px]">{!isDashboard && <Navbar />}</div>
+      <div>
+        {!isDashboard && (
+          <div className="h-[72px]">
+            <Navbar />
+          </div>
+        )}
+      </div>
       {children}
       {!isDashboard && <Footer />}
     </>

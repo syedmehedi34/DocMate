@@ -20,7 +20,6 @@ export default function Navbar() {
     //{ name: "Contact", href: "/contact" },
     { name: "About Us", href: "/pages/about" },
     { name: "Nexa", href: "/pages/Nexa" },
-    // ...(session ? [{ name: "Add Doctor", href: "/pages/addDoctor" }] : []),
     ...(session
       ? [{ name: "Dashboard", href: `/dashboard/${session?.user?.role}/home` }]
       : []),
@@ -31,7 +30,7 @@ export default function Navbar() {
   const isActive = (href) => pathname === href;
 
   return (
-    <nav className="bg-linear-to-r py-1 fixed w-full top-0 z-50 opacity-90 from-[#042020] via-[#1e4046] to-[#0EA5E9] shadow-lg">
+    <nav className="bg-linear-to-r py-1 fixed w-full top-0 z-50 opacity-95 from-[#042020] via-[#1e4046] to-[#0EA5E9] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -53,10 +52,10 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  className={`px-3 py-2 rounded-md text-sm text-white transition-all duration-200 ease-in-out transform hover:scale-110 ${
                     isActive(item.href)
-                      ? "bg-blue-500 text-white"
-                      : "text-white hover:bg-blue-500/50"
+                      ? "border-b-[2.5px] font-bold scale-110"
+                      : "hover:text-blue-300 font-semibold hover:border-b-[2.5px] border-blue-300"
                   }`}
                 >
                   {item.name}
@@ -99,6 +98,7 @@ export default function Navbar() {
             </div>
           </div>
 
+          {/* // */}
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 text-gray-200 hover:text-white focus:outline-none"
