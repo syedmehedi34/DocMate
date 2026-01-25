@@ -5,7 +5,12 @@ import RoleGuard from "../../../components/RoleGuard";
 export default function AdminHome() {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ name: "", email: "", role: "", isPatient: false });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "",
+    isPatient: false,
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -33,7 +38,12 @@ export default function AdminHome() {
 
   const handleEdit = (user) => {
     setEditingUser(user);
-    setFormData({ name: user.name, email: user.email, role: user.role, isPatient: user.isPatient });
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isPatient: user.isPatient,
+    });
   };
 
   const handleChange = (e) => {
@@ -54,7 +64,11 @@ export default function AdminHome() {
 
       if (!res.ok) throw new Error("Failed to update user");
 
-      setUsers(users.map((u) => (u._id === editingUser._id ? { ...u, ...formData } : u)));
+      setUsers(
+        users.map((u) =>
+          u._id === editingUser._id ? { ...u, ...formData } : u,
+        ),
+      );
       setEditingUser(null);
     } catch (error) {
       console.error("Error updating user:", error);
@@ -87,7 +101,9 @@ export default function AdminHome() {
                   <td className="border p-2">{user.name}</td>
                   <td className="border p-2">{user.email}</td>
                   <td className="border p-2">{user.role}</td>
-                  <td className="border p-2">{user.isPatient ? "Yes" : "No"}</td>
+                  <td className="border p-2">
+                    {user.isPatient ? "Yes" : "No"}
+                  </td>
                   <td className="border p-2">
                     <button
                       onClick={() => handleEdit(user)}
@@ -115,27 +131,63 @@ export default function AdminHome() {
               <form onSubmit={handleUpdate}>
                 <div className="mb-2">
                   <label className="block text-sm font-medium">Name</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border p-2 rounded" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full border p-2 rounded"
+                  />
                 </div>
                 <div className="mb-2">
                   <label className="block text-sm font-medium">Email</label>
-                  <input type="email" name="email" value={formData.email} className="w-full border p-2 rounded" disabled />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    className="w-full border p-2 rounded"
+                    disabled
+                  />
                 </div>
                 <div className="mb-2">
                   <label className="block text-sm font-medium">Role</label>
-                  <select name="role" value={formData.role} onChange={handleChange} className="w-full border p-2 rounded">
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full border p-2 rounded"
+                  >
                     <option value="user">User</option>
                     <option value="doctor">Doctor</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium">Is Patient?</label>
-                  <input type="checkbox" name="isPatient" checked={formData.isPatient} onChange={handleChange} className="ml-2" />
+                  <label className="block text-sm font-medium">
+                    Is Patient?
+                  </label>
+                  <input
+                    type="checkbox"
+                    name="isPatient"
+                    checked={formData.isPatient}
+                    onChange={handleChange}
+                    className="ml-2"
+                  />
                 </div>
                 <div className="flex justify-between">
-                  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">Update</button>
-                  <button type="button" onClick={() => setEditingUser(null)} className="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white px-4 py-2 rounded"
+                  >
+                    Update
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingUser(null)}
+                    className="bg-gray-400 text-white px-4 py-2 rounded"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             </div>

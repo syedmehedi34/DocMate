@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // <-- Password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Validation regex patterns
@@ -175,7 +175,7 @@ export default function RegisterPage() {
                   <Lock size={20} />
                 </span>
                 <input
-                  type={showPassword ? "text" : "password"} // <-- show/hide toggle
+                  type={showPassword ? "text" : "password"}
                   className={`w-full pl-10 pr-10 py-3 border ${
                     errors.password ? "border-red-500" : "border-gray-300"
                   } rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all`}
