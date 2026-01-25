@@ -52,11 +52,9 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm text-white transition-all duration-200 ease-in-out transform hover:scale-110 ${
-                    isActive(item.href)
-                      ? "border-b-[2.5px] font-bold scale-110"
-                      : "hover:text-blue-300 font-semibold hover:border-b-[2.5px] border-blue-300"
-                  }`}
+                  className={
+                    isActive(item.href) ? "nav-item-active" : "nav-item"
+                  }
                 >
                   {item.name}
                 </Link>

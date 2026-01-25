@@ -1,2 +1,19 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+@layer components {
+  /* ===== Normal (Inactive) Nav Item ===== */
+  .nav-item {
+    @apply px-3 py-2 rounded-md text-sm text-white font-semibold
+           transition-all duration-200 ease-in-out
+           hover:scale-110 hover:text-blue-300
+           hover:border-b-[2.5px] border-blue-300;
+  }
+
+  /* ===== Active Nav Item ===== */
+  .nav-item-active {
+    @apply px-3 py-2 rounded-md text-sm text-white font-bold
+           scale-110 border-b-[2.5px]
+           transition-all duration-200 ease-in-out;
+  }
+}
