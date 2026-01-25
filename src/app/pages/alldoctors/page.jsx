@@ -101,7 +101,7 @@ const DoctorPage = () => {
   const totalPages = Math.ceil(totalDoctors / itemsPerPage);
   const currentDoctors = doctors.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const handleNextPage = () =>
@@ -149,7 +149,8 @@ const DoctorPage = () => {
       <div className="flex flex-col md:flex-row justify-between items-center my-6 px-4">
         <p className="text-sm text-[#52a09a] font-semibold">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, totalDoctors)} of {totalDoctors} results
+          {Math.min(currentPage * itemsPerPage, totalDoctors)} of {totalDoctors}{" "}
+          results
         </p>
         <div className="flex space-x-2 mt-2 md:mt-0">
           <button

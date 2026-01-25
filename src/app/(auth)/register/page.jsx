@@ -7,6 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { User, Mail, Lock, AlertCircle } from "lucide-react";
 import Swal from "sweetalert2";
+import { BiSolidHide } from "react-icons/bi";
+import { BiSolidShow } from "react-icons/bi";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -14,6 +16,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // <-- Password visibility
   const router = useRouter();
 
   // Validation regex patterns
@@ -52,7 +55,6 @@ export default function RegisterPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Only send name, email, and password – role is not included so the default is used.
         body: JSON.stringify({ name, email, password }),
       });
 
@@ -173,14 +175,25 @@ export default function RegisterPage() {
                   <Lock size={20} />
                 </span>
                 <input
-                  type="password"
-                  className={`w-full pl-10 pr-4 py-3 border ${
+                  type={showPassword ? "text" : "password"} // <-- show/hide toggle
+                  className={`w-full pl-10 pr-10 py-3 border ${
                     errors.password ? "border-red-500" : "border-gray-300"
                   } rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all`}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium"
+                >
+                  {showPassword ? (
+                    <BiSolidHide size={22} />
+                  ) : (
+                    <BiSolidShow size={22} />
+                  )}
+                </button>
                 {errors.password && (
                   <div className="flex items-center mt-1 text-red-500 text-sm">
                     <AlertCircle size={16} className="mr-1" />
