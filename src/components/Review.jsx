@@ -127,7 +127,7 @@ const Review = () => {
 
             <div className="flex my-7 items-center">
               <img
-                src="https://i.ibb.co/4YHfHfM/u4.jpg"
+                src="https://i.ibb.co/vCgjx0bj/u3.jpg"
                 alt="patient"
                 className="w-12 h-12 rounded-full"
               />

@@ -5,7 +5,7 @@ import About from "@/components/About";
 import HospitalStats from "@/components/HospitalStats";
 import Services from "@/components/Services";
 import Appointment from "./components/Appointment";
-import SeeAll from "@/components/SeeAll";
+import Newsletter from "@/components/Newsletter";
 import OurCommunity from "@/components/OurCommunity";
 import Review from "@/components/Review";
 
@@ -20,7 +20,7 @@ export default function Home() {
       <HospitalStats />
       <Review />
       <OurCommunity />
-      <SeeAll />
+      <Newsletter />
     </div>
   );
 }
