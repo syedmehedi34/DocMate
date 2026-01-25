@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Appointment() {
   return (
@@ -17,33 +18,30 @@ export default function Appointment() {
           <p className="font-semibold text-[#0EA5E9] text-xl mb-10">
             CALL TO ACTION
           </p>
-
           <p className="text-xl md:w-2/3 mb-4">
             More Specialists, Strong Partnerships, And The Power To Care You The
             Best!
           </p>
-
           <p className="text-lg md:w-3/4 mb-10">
             Bridging Healthcare Gaps: Expert Medical Tourism from Africa to
             India for World-Class Treatment!
           </p>
-
           <Link
-            href=""
+            href="pages/alldoctors"
             className="btn border-none bg-green-600 text-white hover:bg-green-700 rounded-xl shadow-none"
           >
-            book Appointment
+            Book An Appointment
           </Link>
-
-          <p className="mt-4">OR CALL: +880 1700000000</p>
+          <p className="mt-4">Or CALL: +880 1700000000</p>
         </div>
 
         {/* image content */}
-        <div>
-          <img
-            src="assets/doctor-image.png"
+        <div className="absolute right-4 w-120 h-132 bottom-0 ">
+          <Image
+            src="/assets/doctor-image.png"
             alt="doctor"
-            className="w-120 absolute right-4 bottom-0"
+            fill
+            className="object-contain"
           />
         </div>
       </div>
