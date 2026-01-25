@@ -35,13 +35,15 @@ export default function Footer() {
         {/* Left Side */}
         <div className="max-w-md">
           {/* Logo */}
-          <Image
-            src="/assets/docmate.png"
-            alt="Med Expert BD Logo"
-            width={150}
-            height={50}
-            className="mb-2"
-          />
+          <Link href="/">
+            <Image
+              src="/assets/docmate.png"
+              alt="Med Expert BD Logo"
+              width={150}
+              height={50}
+              className="mb-2"
+            />
+          </Link>
 
           <p className="text-gray-300">
             Your trusted consultancy for expert medical advice and healthcare
