@@ -1,8 +1,8 @@
 import Image from "next/image";
-import BannerSection from "./components/BannerSection";
+import HomeBanner from "./components/HomeBanner";
 import Updates from "./components/Updates";
 import About from "@/components/About";
-import HospitalOverview from "@/components/HospitalOverview"
+import HospitalOverview from "@/components/HospitalOverview";
 import Services from "@/components/Services";
 import Appointment from "./components/Appointment";
 import SeeAll from "@/components/SeeAll";
@@ -12,11 +12,11 @@ import Review from "@/components/Review";
 export default function Home() {
   return (
     <div>
-      <BannerSection />
+      <HomeBanner />
       <Updates />
-      <About/>
-      <Appointment/>
-      <Services/>
+      <About />
+      <Appointment />
+      <Services />
       <HospitalOverview></HospitalOverview>
       <Review />
       <Community />

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import {
   Navigation,
   Pagination,
@@ -25,29 +26,39 @@ export default function BannerSlider() {
         pagination={{ clickable: true }}
         scrollbar={{ draggable: true }}
         autoplay={{ delay: 1800, disableOnInteraction: false }}
+        className="h-[250px] md:h-[500px]" // Set explicit height
       >
-        <SwiperSlide className="relative h-100">
-          <img
-            src="https://i.ibb.co.com/vxZyhmc5/three-1.png"
-            alt="Slide 1"
-            className="w-full h-full object-cover"
-          />
+        <SwiperSlide>
+          <div className="relative w-full h-full">
+            <Image
+              src="https://i.ibb.co.com/vxZyhmc5/three-1.png"
+              alt="Slide 1"
+              fill
+              className="object-cover"
+            />
+          </div>
         </SwiperSlide>
 
-        <SwiperSlide className="relative h-100">
-          <img
-            src="https://i.ibb.co.com/WNcXBdsf/two-1.png"
-            alt="Slide 2"
-            className="w-full h-full object-cover"
-          />
+        <SwiperSlide>
+          <div className="relative w-full h-full">
+            <Image
+              src="https://i.ibb.co.com/WNcXBdsf/two-1.png"
+              alt="Slide 2"
+              fill
+              className="object-cover"
+            />
+          </div>
         </SwiperSlide>
 
-        <SwiperSlide className="relative h-100">
-          <img
-            src="https://i.ibb.co.com/CKFMNVWn/one-1.png"
-            alt="Slide 3"
-            className="w-full h-full object-cover"
-          />
+        <SwiperSlide>
+          <div className="relative w-full h-full">
+            <Image
+              src="https://i.ibb.co.com/CKFMNVWn/one-1.png"
+              alt="Slide 3"
+              fill
+              className="object-cover"
+            />
+          </div>
         </SwiperSlide>
       </Swiper>
     </div>
