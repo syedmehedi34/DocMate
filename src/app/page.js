@@ -6,7 +6,7 @@ import HospitalStats from "@/components/HospitalStats";
 import Services from "@/components/Services";
 import Appointment from "./components/Appointment";
 import SeeAll from "@/components/SeeAll";
-import Community from "@/components/Community";
+import OurCommunity from "@/components/OurCommunity";
 import Review from "@/components/Review";
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
       <Services />
       <HospitalStats />
       <Review />
-      <Community />
+      <OurCommunity />
       <SeeAll />
     </div>
   );
