@@ -9,7 +9,7 @@ export default function LayoutWrapper({ children }) {
   const isDashboard = pathname.startsWith("/dashboard");
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <div>
         {!isDashboard && (
           <div className="h-[72px]">
@@ -17,8 +17,10 @@ export default function LayoutWrapper({ children }) {
           </div>
         )}
       </div>
-      {children}
+
+      <div className="flex-1">{children}</div>
+
       {!isDashboard && <Footer />}
-    </>
+    </div>
   );
 }

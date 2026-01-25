@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 const DoctorPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -13,13 +14,15 @@ const DoctorPage = () => {
   const [reason, setReason] = useState("");
   const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // Show 8 doctors per page
+  const itemsPerPage = 8;
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
 
   const handleAppointmentClick = (doctor) => {
     setSelectedDoctor(doctor);
     setShowModal(true);
   };
 
+  // * Handle appointment submission */
   const handleAppointmentSubmit = async () => {
     if (
       !selectedDoctor ||
@@ -81,12 +84,15 @@ const DoctorPage = () => {
       console.error("Error booking appointment:", error);
     }
   };
+  // * ends here */
 
+  // Fetch doctors on component mount
   useEffect(() => {
     fetchDoctors();
   }, []);
 
   const fetchDoctors = async () => {
+    setIsLoadingDoctors(true);
     try {
       const res = await fetch("/api/users");
       const data = await res.json();
@@ -94,9 +100,12 @@ const DoctorPage = () => {
       setDoctors(doctorData);
     } catch (error) {
       console.error("Error fetching doctors:", error);
+    } finally {
+      setIsLoadingDoctors(false);
     }
   };
 
+  // Pagination calculations
   const totalDoctors = doctors.length;
   const totalPages = Math.ceil(totalDoctors / itemsPerPage);
   const currentDoctors = doctors.slice(
@@ -104,11 +113,37 @@ const DoctorPage = () => {
     currentPage * itemsPerPage,
   );
 
-  const handleNextPage = () =>
-    currentPage < totalPages && setCurrentPage((prev) => prev + 1);
-  const handlePrevPage = () =>
-    currentPage > 1 && setCurrentPage((prev) => prev - 1);
-  const handlePageClick = (pageNumber) => setCurrentPage(pageNumber);
+  // Pagination handlers with loading effect
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setIsLoadingDoctors(true);
+      setTimeout(() => {
+        setCurrentPage((prev) => prev + 1);
+        setIsLoadingDoctors(false);
+      }, 500);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setIsLoadingDoctors(true);
+      setTimeout(() => {
+        setCurrentPage((prev) => prev - 1);
+        setIsLoadingDoctors(false);
+      }, 500);
+    }
+  };
+
+  const handlePageClick = (pageNumber) => {
+    if (pageNumber !== currentPage) {
+      setIsLoadingDoctors(true);
+      setTimeout(() => {
+        setCurrentPage(pageNumber);
+        setIsLoadingDoctors(false);
+      }, 500);
+    }
+  };
+  // ends pagination handlers
 
   return (
     <div className="max-w-screen-xl md:mx-auto mx-5">
@@ -116,36 +151,47 @@ const DoctorPage = () => {
         All Doctors
       </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-        {currentDoctors.map((doctor) => (
-          <div key={doctor._id} className="card bg-base-100 shadow-sm relative">
-            <p className="badge absolute badge-md badge-warning font-bold text-md p-3 rounded-none">
-              {doctor.doctorCategory || "N/A"}
-            </p>
-            <figure>
-              <img
-                src={doctor.doctorImageUrl}
-                alt="Doctor"
-                className="w-full h-52 object-cover"
-              />
-            </figure>
+      {isLoadingDoctors ? (
+        <div className="flex justify-center items-center h-64">
+          <span className="loading loading-bars loading-xl"></span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+          {currentDoctors.map((doctor) => (
+            <div
+              key={doctor._id}
+              className="card bg-base-100 shadow-sm relative"
+            >
+              <p className="z-50 badge absolute badge-md badge-warning font-bold text-md p-3 rounded-none">
+                {doctor.doctorCategory || "N/A"}
+              </p>
+              <figure className="relative w-full h-52">
+                <Image
+                  src={doctor.doctorImageUrl}
+                  alt="Doctor"
+                  fill
+                  className="object-cover"
+                />
+              </figure>
 
-            <div className="card-body">
-              <h2 className="card-title">{doctor.name}</h2>
-              <p>{doctor.email}</p>
-              <div className="justify-end card-actions">
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleAppointmentClick(doctor)}
-                >
-                  Appointment Now
-                </button>
+              <div className="card-body">
+                <h2 className="card-title">{doctor.name}</h2>
+                <p>{doctor.email}</p>
+                <div className="justify-end card-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleAppointmentClick(doctor)}
+                  >
+                    Appointment Now
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
+      {/* pagination starts */}
       <div className="flex flex-col md:flex-row justify-between items-center my-6 px-4">
         <p className="text-sm text-[#52a09a] font-semibold">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
@@ -154,7 +200,7 @@ const DoctorPage = () => {
         </p>
         <div className="flex space-x-2 mt-2 md:mt-0">
           <button
-            className={`px-3 py-1 border rounded ${
+            className={`px-3 py-1 border rounded cursor-pointer ${
               currentPage === 1
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                 : "bg-white text-[#66c0b8]"
@@ -167,7 +213,7 @@ const DoctorPage = () => {
           {Array.from({ length: totalPages }, (_, index) => (
             <button
               key={index}
-              className={`px-3 py-1 border rounded ${
+              className={`px-3 py-1 border rounded cursor-pointer ${
                 currentPage === index + 1
                   ? "bg-[#105852] text-white"
                   : "bg-white text-[#105852] hover:bg-[#dcf1ef]"
@@ -178,7 +224,7 @@ const DoctorPage = () => {
             </button>
           ))}
           <button
-            className={`px-3 py-1 border rounded ${
+            className={`px-3 py-1 border rounded cursor-pointer ${
               currentPage === totalPages
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                 : "bg-white text-[#1d7b74]"
@@ -190,7 +236,9 @@ const DoctorPage = () => {
           </button>
         </div>
       </div>
+      {/* pagination ends */}
 
+      {/* modal content */}
       {showModal && selectedDoctor && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
