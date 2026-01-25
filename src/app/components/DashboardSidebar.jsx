@@ -10,11 +10,12 @@ import {
   UserIcon,
   DocumentTextIcon,
   HeartIcon,
-  BriefcaseIcon,
   ArrowLeftOnRectangleIcon,
   XMarkIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import { FaUserDoctor } from "react-icons/fa6";
+import { IoWarning } from "react-icons/io5";
 
 export default function DashboardSidebar() {
   const { data: session, update } = useSession();
@@ -28,17 +29,19 @@ export default function DashboardSidebar() {
 
       fetch("/api/logout", { method: "POST" })
         .then(() => {
-          signOut({ callbackUrl: "/" }); // Ensure client session clears
+          signOut({ callbackUrl: "/" });
         })
         .finally(() => {
-          update(); // Refresh session state after logging out
+          update();
         });
     }
-  }, [role, appliedDoctor, update]);
+  }, [role, appliedDoctor, update, signOut]);
 
   // Modal and form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
+    name: session?.user?.name || "",
+    email: session?.user?.email || "",
     cvUrl: "",
     imageUrl: "",
     category: "",
@@ -98,6 +101,7 @@ export default function DashboardSidebar() {
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({ cvUrl: "", imageUrl: "", category: "" });
@@ -130,7 +134,7 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-linear-to-b from-slate-800 to-slate-900 text-white flex flex-col h-auto border-r border-slate-700">
+    <aside className="w-64 bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col h-auto border-r border-slate-700">
       {/* Header Section */}
       <div className="p-6 border-b border-slate-700">
         <Link
@@ -151,7 +155,7 @@ export default function DashboardSidebar() {
         />
         <div>
           <p className="font-medium truncate">{session?.user?.name}</p>
-          <p className="text-sm text-slate-400">{role?.toUpperCase()}</p>
+          <p className="text-sm text-slate-400 uppercase">{role}</p>
         </div>
       </div>
 
@@ -185,8 +189,8 @@ export default function DashboardSidebar() {
             onClick={handleOpenModal}
             className="w-full flex items-center gap-3 px-4 py-3 mt-4 text-sm font-medium rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-600/50 hover:border-emerald-600 transition-colors"
           >
-            <BriefcaseIcon className="w-5 h-5 text-emerald-400" />
-            Become a Doctor
+            <FaUserDoctor className="w-5 h-5 text-emerald-400" />
+            Join as Doctor
           </button>
         )}
       </nav>
@@ -202,108 +206,177 @@ export default function DashboardSidebar() {
         </button>
       </div>
 
-      {/* Application Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-          <div className="bg-slate-800 text-white p-6 rounded-xl border border-slate-700 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <BriefcaseIcon className="w-6 h-6 text-blue-400" />
-                Doctor Application
-              </h2>
-              <button
-                onClick={handleCloseModal}
-                className="p-1 hover:bg-slate-700 rounded-full"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-            </div>
+      {/* //* Application Modal Portion */}
+      <div
+        className={`fixed inset-0 z-50 ${
+          isModalOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+            isModalOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={handleCloseModal}
+        />
 
-            <form onSubmit={handleApply} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-slate-400">
-                  CV URL
-                </label>
-                <input
-                  type="url"
-                  name="cvUrl"
-                  value={formData.cvUrl}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-slate-400">
-                  Profile Image URL
-                </label>
-                <input
-                  type="url"
-                  name="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-slate-400">
-                  Specialty
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select specialty</option>
-                  <option value="general">General Practitioner</option>
-                  <option value="cardiology">Cardiology</option>
-                  <option value="dermatology">Dermatology</option>
-                  <option value="neurology">Neurology</option>
-                  <option value="pediatrics">Pediatrics</option>
-                </select>
-              </div>
-
-              {error && (
-                <div className="p-3 bg-red-500/20 text-red-400 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3">
+        {/* Modal content */}
+        <div className="flex  items-center justify-center min-h-screen p-4">
+          <div
+            className={`
+              relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto
+              transition-all duration-300 ease-out transform
+              ${
+                isModalOpen
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-95 -translate-y-12 pointer-events-none"
+              }
+            `}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 md:p-8">
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                  <FaUserDoctor className="w-6 h-6 text-blue-700" />
+                  Doctor's Joining Form
+                </h3>
                 <button
-                  type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-300 hover:text-white transition-colors"
+                  className="text-gray-500 hover:text-gray-800 transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-2 transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="animate-spin">⟳</span>
-                      Applying...
-                    </>
-                  ) : (
-                    <>
-                      <CheckIcon className="w-5 h-5" />
-                      Submit Application
-                    </>
-                  )}
+                  <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-            </form>
+              <div className="flex items-center mb-5 mt-1.5 gap-1">
+                <IoWarning className="w-4 h-4 text-warning" />
+                <p className="text-[#212121] text-[13px]">
+                  Your profile will be reviewed against our doctors' list for
+                  approval.
+                </p>
+              </div>
+
+              {/* //? form data for the application */}
+              <form onSubmit={handleApply} className="space-y-2.5">
+                {/* Name */}
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name || ""}
+                    onChange={handleChange}
+                    className="text-black input input-bordered w-full"
+                    required
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={session?.user?.email || ""}
+                    onChange={handleChange}
+                    className="text-black input input-bordered w-full"
+                    required
+                  />
+                </div>
+
+                {/* CV URL */}
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                    CV URL
+                  </label>
+                  <input
+                    type="url"
+                    name="cvUrl"
+                    value={formData.cvUrl}
+                    onChange={handleChange}
+                    className="text-black input input-bordered w-full"
+                    required
+                  />
+                </div>
+
+                {/* Profile Image URL */}
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                    Profile Image URL
+                  </label>
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleChange}
+                    className="text-black input input-bordered w-full"
+                    required
+                  />
+                </div>
+
+                {/* Specialty */}
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                    Specialty
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="text-black select select-bordered w-full"
+                    required
+                  >
+                    <option value="">Select specialty</option>
+                    <option value="general">General Practitioner</option>
+                    <option value="cardiology">Cardiology</option>
+                    <option value="dermatology">Dermatology</option>
+                    <option value="neurology">Neurology</option>
+                    <option value="pediatrics">Pediatrics</option>
+                  </select>
+                </div>
+
+                {error && (
+                  <div className="alert alert-error text-sm">{error}</div>
+                )}
+
+                <div className="mt-8 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    className="text-[#212121] btn btn-outline"
+                    onClick={handleCloseModal}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary flex items-center gap-2"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm"></span>
+                        Applying...
+                      </>
+                    ) : (
+                      <>
+                        <CheckIcon className="w-5 h-5" />
+                        Submit Application
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </aside>
   );
 }

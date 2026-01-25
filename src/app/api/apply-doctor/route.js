@@ -15,12 +15,12 @@ export async function POST(req) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { cvUrl, imageUrl, category } = await req.json();
+  const { name, cvUrl, imageUrl, category } = await req.json();
 
   if (!cvUrl || !imageUrl || !category) {
     return NextResponse.json(
       { message: "Missing required fields" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -28,30 +28,25 @@ export async function POST(req) {
     const updatedUser = await User.findByIdAndUpdate(
       session.user.id,
       {
+        name: name,
         doctorCvUrl: cvUrl,
         doctorImageUrl: imageUrl,
         doctorCategory: category,
         appliedDoctor: true,
       },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedUser) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json(
       { message: "Application submitted", user: updatedUser },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error applying to be a doctor:", error);
-    return NextResponse.json(
-      { message: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
