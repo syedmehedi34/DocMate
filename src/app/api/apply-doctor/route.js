@@ -15,7 +15,15 @@ export async function POST(req) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, cvUrl, imageUrl, category } = await req.json();
+  const {
+    name,
+    cvUrl,
+    imageUrl,
+    category,
+    chamberDays,
+    chamberOpeningTime,
+    chamberClosingTime,
+  } = await req.json();
 
   if (!cvUrl || !imageUrl || !category) {
     return NextResponse.json(
@@ -33,6 +41,9 @@ export async function POST(req) {
         doctorImageUrl: imageUrl,
         doctorCategory: category,
         appliedDoctor: true,
+        chamberDays: chamberDays || [],
+        chamberOpeningTime: chamberOpeningTime || "",
+        chamberClosingTime: chamberClosingTime || "",
       },
       { new: true },
     );

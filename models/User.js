@@ -42,10 +42,24 @@ const UserSchema = new mongoose.Schema({
       "other",
     ],
   },
-
   appliedDoctor: {
     type: Boolean,
     default: false,
+  },
+  chamberDays: {
+    type: [String],
+    default: [],
+    required: false,
+  },
+  chamberOpeningTime: {
+    type: String,
+    default: "",
+    required: false,
+  },
+  chamberClosingTime: {
+    type: String,
+    default: "",
+    required: false,
   },
 });
 

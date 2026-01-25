@@ -37,7 +37,7 @@ export default function DashboardSidebar() {
     }
   }, [role, appliedDoctor, update, signOut]);
 
-  // Modal and form states
+  //? Modal and form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: session?.user?.name || "",
@@ -45,7 +45,11 @@ export default function DashboardSidebar() {
     cvUrl: "",
     imageUrl: "",
     category: "",
+    chamberDays: [], // array of selected days
+    chamberOpeningTime: "", // e.g. "09:00"
+    chamberClosingTime: "", // e.g. "17:00"
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -101,30 +105,62 @@ export default function DashboardSidebar() {
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setFormData({ cvUrl: "", imageUrl: "", category: "" });
+    setFormData({
+      name: session?.user?.name || "",
+      email: session?.user?.email || "",
+      cvUrl: "",
+      imageUrl: "",
+      category: "",
+      chamberDays: [],
+      chamberOpeningTime: "",
+      chamberClosingTime: "",
+    });
     setError(null);
   };
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      setFormData((prev) => {
+        if (checked) {
+          return { ...prev, chamberDays: [...prev.chamberDays, value] };
+        } else {
+          return {
+            ...prev,
+            chamberDays: prev.chamberDays.filter((day) => day !== value),
+          };
+        }
+      });
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleApply = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    console.log("Doctor Application Data:", formData);
+
     try {
       const res = await fetch("/api/apply-doctor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, appliedDoctor: true }),
       });
+
       if (!res.ok) {
-        throw new Error("Application failed. Please try again.");
+        const errData = await res.json();
+        throw new Error(
+          errData.message || "Application failed. Please try again.",
+        );
       }
+
+      alert("Application submitted successfully!");
       handleCloseModal();
     } catch (error) {
       setError(error.message);
@@ -206,9 +242,9 @@ export default function DashboardSidebar() {
         </button>
       </div>
 
-      {/* //* Application Modal Portion */}
+      {/* Application Modal */}
       <div
-        className={`fixed inset-0 z-50 ${
+        className={`fixed inset-0 z-50  ${
           isModalOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -223,10 +259,10 @@ export default function DashboardSidebar() {
         />
 
         {/* Modal content */}
-        <div className="flex  items-center justify-center min-h-screen p-4">
+        <div className="flex items-center justify-center min-h-screen p-4">
           <div
             className={`
-              relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto
+              relative bg-white rounded-2xl shadow-2xl w-full max-w-[700px] max-h-[90vh] overflow-y-auto
               transition-all duration-300 ease-out transform
               ${
                 isModalOpen
@@ -237,7 +273,7 @@ export default function DashboardSidebar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 md:p-8">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                   <FaUserDoctor className="w-6 h-6 text-blue-700" />
                   Doctor's Joining Form
@@ -249,49 +285,51 @@ export default function DashboardSidebar() {
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-              <div className="flex items-center mb-5 mt-1.5 gap-1">
-                <IoWarning className="w-4 h-4 text-warning" />
-                <p className="text-[#212121] text-[13px]">
+
+              <div className="flex items-center mb-6 gap-2">
+                <IoWarning className="w-5 h-5 text-warning" />
+                <p className="text-[#212121] text-sm">
                   Your profile will be reviewed against our doctors' list for
                   approval.
                 </p>
               </div>
 
-              {/* //? form data for the application */}
-              <form onSubmit={handleApply} className="space-y-2.5">
-                {/* Name */}
-                <div>
-                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name || ""}
-                    onChange={handleChange}
-                    className="text-black input input-bordered w-full"
-                    required
-                  />
-                </div>
+              <form onSubmit={handleApply} className="space-y-4">
+                <div className="flex items-center gap-4">
+                  {/* Name */}
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="input input-bordered w-full text-black"
+                      required
+                    />
+                  </div>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={session?.user?.email || ""}
-                    onChange={handleChange}
-                    className="text-black input input-bordered w-full"
-                    required
-                  />
+                  {/* Email */}
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={session?.user?.email || ""}
+                      onChange={handleChange}
+                      className="input input-bordered w-full text-black"
+                      required
+                    />
+                  </div>
                 </div>
 
                 {/* CV URL */}
                 <div>
-                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     CV URL
                   </label>
                   <input
@@ -299,14 +337,14 @@ export default function DashboardSidebar() {
                     name="cvUrl"
                     value={formData.cvUrl}
                     onChange={handleChange}
-                    className="text-black input input-bordered w-full"
+                    className="input input-bordered w-full text-black"
                     required
                   />
                 </div>
 
                 {/* Profile Image URL */}
                 <div>
-                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Profile Image URL
                   </label>
                   <input
@@ -314,21 +352,21 @@ export default function DashboardSidebar() {
                     name="imageUrl"
                     value={formData.imageUrl}
                     onChange={handleChange}
-                    className="text-black input input-bordered w-full"
+                    className="input input-bordered w-full text-black"
                     required
                   />
                 </div>
 
                 {/* Specialty */}
-                <div>
-                  <label className="block text-[13px] font-medium text-gray-700 mb-1">
+                <div className="w-1/2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Specialty
                   </label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="text-black select select-bordered w-full"
+                    className="select select-bordered w-full text-black"
                     required
                   >
                     <option value="">Select specialty</option>
@@ -340,14 +378,77 @@ export default function DashboardSidebar() {
                   </select>
                 </div>
 
+                {/* Chamber Days - Weekly Schedule */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chamber Days (select all applicable)
+                  </label>
+                  <div className="text-black grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    {[
+                      "Saturday",
+                      "Sunday",
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                    ].map((day) => (
+                      <label
+                        key={day}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          name="chamberDays"
+                          value={day}
+                          checked={formData.chamberDays.includes(day)}
+                          onChange={handleChange}
+                          className="checkbox checkbox-sm checkbox-primary"
+                        />
+                        <span>{day}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chamber Time */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Opening Time
+                    </label>
+                    <input
+                      type="time"
+                      name="chamberOpeningTime"
+                      value={formData.chamberOpeningTime}
+                      onChange={handleChange}
+                      className="input input-bordered w-full text-black"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Closing Time
+                    </label>
+                    <input
+                      type="time"
+                      name="chamberClosingTime"
+                      value={formData.chamberClosingTime}
+                      onChange={handleChange}
+                      className="input input-bordered w-full text-black"
+                      required
+                    />
+                  </div>
+                </div>
+
                 {error && (
-                  <div className="alert alert-error text-sm">{error}</div>
+                  <div className="alert alert-error text-sm mt-4">{error}</div>
                 )}
 
                 <div className="mt-8 flex justify-end gap-3">
                   <button
                     type="button"
-                    className="text-[#212121] btn btn-outline"
+                    className="btn btn-outline text-[#212121]"
                     onClick={handleCloseModal}
                     disabled={loading}
                   >
