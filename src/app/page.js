@@ -2,7 +2,7 @@ import Image from "next/image";
 import HomeBanner from "./components/HomeBanner";
 import Updates from "./components/Updates";
 import About from "@/components/About";
-import HospitalOverview from "@/components/HospitalOverview";
+import HospitalStats from "@/components/HospitalStats";
 import Services from "@/components/Services";
 import Appointment from "./components/Appointment";
 import SeeAll from "@/components/SeeAll";
@@ -17,7 +17,7 @@ export default function Home() {
       <About />
       <Appointment />
       <Services />
-      <HospitalOverview></HospitalOverview>
+      <HospitalStats />
       <Review />
       <Community />
       <SeeAll />
