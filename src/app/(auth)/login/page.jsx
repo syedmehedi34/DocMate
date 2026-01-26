@@ -21,7 +21,7 @@ export default function LoginPage() {
   const fillCredentials = (type) => {
     switch (type) {
       case "admin":
-        setEmail("mehedi-admin@gmail.com");
+        setEmail("docmate-admin@gmail.com");
         setPassword("adMin@123");
         break;
       case "doctor":
@@ -29,7 +29,7 @@ export default function LoginPage() {
         setPassword("docTor@123");
         break;
       case "user":
-        setEmail("user@gmail.com");
+        setEmail("john-smith@gmail.com");
         setPassword("useR@123");
         break;
       default:

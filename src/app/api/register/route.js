@@ -24,9 +24,6 @@ export async function POST(request) {
       email,
       password: hashedPassword,
       role: "user",
-      chamberDays: [],
-      chamberOpeningTime: "",
-      chamberClosingTime: "",
     });
 
     return NextResponse.json(

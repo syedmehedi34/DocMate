@@ -207,9 +207,9 @@ const DoctorPage = () => {
 
         {/* ✅ Content */}
         <div className="h-full relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="h-full flex flex-col justify-center text-left mb-8 text-[#122B2B]">
+          <div className="h-full flex flex-col justify-center text-left text-[#122B2B]">
             <h1 className="text-[50px] font-bold mb-3">Our Doctors</h1>
-            <div className="flex items-center gap-2 text-[16px] ">
+            <div className="flex items-center gap-2 text-[16px] mb-14">
               <Link href="/" className="hover:font-extrabold">
                 <span className="text-[#93C249] font-bold">Home</span>
               </Link>
@@ -218,7 +218,7 @@ const DoctorPage = () => {
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-3xl px-4">
+          <div className="border border-[#93C249]/30 shadow-xl p-4 rounded-2xl bg-white/5 backdrop-blur-sm absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-3xl">
             <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-5 border border-white/20">
               <div className="grid md:grid-cols-2 gap-4">
                 {/* Name search */}

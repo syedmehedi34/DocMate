@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema({
   },
   isPatient: {
     type: Boolean,
-    default: false, // Defaults to false, meaning the user is not a patient unless specified
+    default: false,
   },
   doctorCvUrl: {
     type: String,
@@ -33,7 +33,9 @@ const UserSchema = new mongoose.Schema({
   },
   doctorCategory: {
     type: String,
+    default: "-",
     enum: [
+      "-",
       "general",
       "cardiology",
       "dermatology",
@@ -51,15 +53,46 @@ const UserSchema = new mongoose.Schema({
     default: [],
     required: false,
   },
-  chamberOpeningTime: {
-    type: String,
-    default: "",
+  chamberTime: {
+    type: [String],
+    default: [],
     required: false,
   },
-  chamberClosingTime: {
+  abouts: {
     type: String,
     default: "",
-    required: false,
+  },
+  degrees: {
+    type: [String],
+    default: [],
+  },
+  appointmentNumber: {
+    type: String,
+    default: "",
+  },
+  appointmentEmail: {
+    type: String,
+    default: "",
+  },
+  location: {
+    type: String,
+    default: "",
+  },
+  consultationFee: {
+    type: Number,
+    default: 0,
+  },
+  experienceYear: {
+    type: Number,
+    default: 0,
+  },
+  worksAndExperiences: {
+    type: [String],
+    default: [],
+  },
+  specializations: {
+    type: [String],
+    default: [],
   },
 });
 
