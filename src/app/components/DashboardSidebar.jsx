@@ -37,7 +37,7 @@ export default function DashboardSidebar() {
     }
   }, [role, appliedDoctor, update, signOut]);
 
-  //? Modal and form states
+  // Modal and form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: session?.user?.name || "",
@@ -45,9 +45,6 @@ export default function DashboardSidebar() {
     cvUrl: "",
     imageUrl: "",
     category: "",
-    chamberDays: [], // array of selected days
-    chamberOpeningTime: "", // e.g. "09:00"
-    chamberClosingTime: "", // e.g. "17:00"
   });
 
   const [loading, setLoading] = useState(false);
@@ -105,6 +102,7 @@ export default function DashboardSidebar() {
   };
 
   const handleOpenModal = () => setIsModalOpen(true);
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({
@@ -113,30 +111,13 @@ export default function DashboardSidebar() {
       cvUrl: "",
       imageUrl: "",
       category: "",
-      chamberDays: [],
-      chamberOpeningTime: "",
-      chamberClosingTime: "",
     });
     setError(null);
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === "checkbox") {
-      setFormData((prev) => {
-        if (checked) {
-          return { ...prev, chamberDays: [...prev.chamberDays, value] };
-        } else {
-          return {
-            ...prev,
-            chamberDays: prev.chamberDays.filter((day) => day !== value),
-          };
-        }
-      });
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleApply = async (e) => {
@@ -244,7 +225,7 @@ export default function DashboardSidebar() {
 
       {/* Application Modal */}
       <div
-        className={`fixed inset-0 z-50  ${
+        className={`fixed inset-0 z-50 ${
           isModalOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -287,17 +268,17 @@ export default function DashboardSidebar() {
               </div>
 
               <div className="flex items-center mb-6 gap-2">
-                <IoWarning className="w-5 h-5 text-warning" />
+                <IoWarning className="w-5 h-5 text-amber-500" />
                 <p className="text-[#212121] text-sm">
                   Your profile will be reviewed against our doctors' list for
                   approval.
                 </p>
               </div>
 
-              <form onSubmit={handleApply} className="space-y-4">
-                <div className="flex items-center gap-4">
+              <form onSubmit={handleApply} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Name */}
-                  <div className="flex-1">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name
                     </label>
@@ -312,17 +293,18 @@ export default function DashboardSidebar() {
                   </div>
 
                   {/* Email */}
-                  <div className="flex-1">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Email
                     </label>
                     <input
                       type="email"
                       name="email"
-                      value={session?.user?.email || ""}
+                      value={formData.email}
                       onChange={handleChange}
                       className="input input-bordered w-full text-black"
                       required
+                      disabled // usually better to show email but not allow change
                     />
                   </div>
                 </div>
@@ -358,7 +340,7 @@ export default function DashboardSidebar() {
                 </div>
 
                 {/* Specialty */}
-                <div className="w-1/2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Specialty
                   </label>
@@ -376,69 +358,6 @@ export default function DashboardSidebar() {
                     <option value="neurology">Neurology</option>
                     <option value="pediatrics">Pediatrics</option>
                   </select>
-                </div>
-
-                {/* Chamber Days - Weekly Schedule */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chamber Days (select all applicable)
-                  </label>
-                  <div className="text-black grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                    {[
-                      "Saturday",
-                      "Sunday",
-                      "Monday",
-                      "Tuesday",
-                      "Wednesday",
-                      "Thursday",
-                      "Friday",
-                    ].map((day) => (
-                      <label
-                        key={day}
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          name="chamberDays"
-                          value={day}
-                          checked={formData.chamberDays.includes(day)}
-                          onChange={handleChange}
-                          className="checkbox checkbox-sm checkbox-primary"
-                        />
-                        <span>{day}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Chamber Time */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Opening Time
-                    </label>
-                    <input
-                      type="time"
-                      name="chamberOpeningTime"
-                      value={formData.chamberOpeningTime}
-                      onChange={handleChange}
-                      className="input input-bordered w-full text-black"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Closing Time
-                    </label>
-                    <input
-                      type="time"
-                      name="chamberClosingTime"
-                      value={formData.chamberClosingTime}
-                      onChange={handleChange}
-                      className="input input-bordered w-full text-black"
-                      required
-                    />
-                  </div>
                 </div>
 
                 {error && (

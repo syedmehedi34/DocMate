@@ -41,9 +41,6 @@ export async function POST(req) {
         doctorImageUrl: imageUrl,
         doctorCategory: category,
         appliedDoctor: true,
-        chamberDays: chamberDays || [],
-        chamberOpeningTime: chamberOpeningTime || "",
-        chamberClosingTime: chamberClosingTime || "",
       },
       { new: true },
     );
