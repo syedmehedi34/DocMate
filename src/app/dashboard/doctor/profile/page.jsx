@@ -12,6 +12,8 @@ import {
   Phone,
   Mail,
   Briefcase,
+  User,
+  Activity,
 } from "lucide-react";
 
 const ProfilePage = () => {
@@ -42,14 +44,14 @@ const ProfilePage = () => {
           bgImage="https://i.ibb.co.com/qYkBsgdW/three.jpg"
           strength={-200}
         >
-          <div className="h-[220px] md:h-[320px] bg-black/40" />
+          <div className="h-[240px] md:h-[340px] bg-black/40" />
         </Parallax>
 
-        {/* Profile Wrapper */}
-        <div className="relative -mt-28 md:-mt-36 max-w-6xl mx-auto px-4 pb-16">
+        {/* Profile Card */}
+        <div className="relative -mt-32 md:-mt-40 max-w-6xl mx-auto px-4 pb-16">
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-start">
+            <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 items-center">
               {/* Avatar */}
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full blur opacity-70" />
@@ -68,9 +70,9 @@ const ProfilePage = () => {
                   {user?.name}
                 </h1>
 
-                <p className="mt-1 flex items-center justify-center md:justify-start gap-2 text-teal-600 font-semibold">
+                <p className="mt-1 flex items-center justify-center md:justify-start gap-2 text-teal-600 font-semibold capitalize">
                   <Stethoscope size={18} />
-                  {user?.doctorCategory || "Specialist"}
+                  {user?.doctorCategory || "Doctor"}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
@@ -78,10 +80,12 @@ const ProfilePage = () => {
                     <Mail size={16} />
                     {user?.appointmentEmail || user?.email}
                   </span>
+
                   <span className="flex items-center gap-2">
                     <Phone size={16} />
                     {user?.appointmentNumber || "Not provided"}
                   </span>
+
                   <span className="flex items-center gap-2">
                     <MapPin size={16} />
                     {user?.location || "Location not set"}
@@ -90,10 +94,9 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Divider */}
             <div className="border-t" />
 
-            {/* Details Grid */}
+            {/* Main Grid */}
             <div className="grid md:grid-cols-3 gap-6 p-8 md:p-10">
               {/* About */}
               <div className="md:col-span-2">
@@ -101,80 +104,58 @@ const ProfilePage = () => {
                   About Doctor
                 </h2>
                 <p className="text-gray-600 leading-relaxed">
-                  {user?.abouts || "No description provided yet."}
+                  {user?.about || (
+                    <span className="italic text-gray-400">
+                      No description added yet.
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* Quick Stats */}
+              {/* Quick Info */}
               <div className="bg-teal-50 rounded-xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-gray-700">
-                    <Briefcase size={18} />
-                    Experience
-                  </span>
-                  <span className="font-bold text-teal-700">
-                    {user?.experienceYear || 0}+ Years
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-gray-700">
-                    <BadgeDollarSign size={18} />
-                    Consultation Fee
-                  </span>
-                  <span className="font-bold text-teal-700">
-                    ৳ {user?.consultationFee || 0}
-                  </span>
-                </div>
+                <InfoRow
+                  icon={<Briefcase size={18} />}
+                  label="Experience"
+                  value={`${user?.experienceYear || 0}+ Years`}
+                />
+                <InfoRow
+                  icon={<BadgeDollarSign size={18} />}
+                  label="Consultation Fee"
+                  value={`৳ ${user?.consultationFee || 0}`}
+                />
+                <InfoRow
+                  icon={<User size={18} />}
+                  label="Gender"
+                  value={user?.gender}
+                />
+                <InfoRow
+                  icon={<Activity size={18} />}
+                  label="Status"
+                  value={user?.currentStatus}
+                  highlight
+                />
               </div>
             </div>
 
             {/* Extra Sections */}
-            <div className="grid md:grid-cols-2 gap-6 p-8 md:p-10 pt-0">
+            <div className="grid md:grid-cols-2 gap-6 px-8 md:px-10 pb-10">
               {/* Degrees */}
-              <div>
-                <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
-                  <GraduationCap size={18} />
-                  Degrees
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {user?.degrees?.length > 0 ? (
-                    user.degrees.map((d, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm font-medium"
-                      >
-                        {d}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No degrees added</p>
-                  )}
-                </div>
-              </div>
+              <TagSection
+                title="Degrees"
+                icon={<GraduationCap size={18} />}
+                data={user?.degree}
+                emptyText="No degrees added"
+                color="cyan"
+              />
 
               {/* Specializations */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">
-                  Specializations
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {user?.specializations?.length > 0 ? (
-                    user.specializations.map((s, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm font-medium"
-                      >
-                        {s}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">
-                      No specializations added
-                    </p>
-                  )}
-                </div>
-              </div>
+              <TagSection
+                title="Specializations"
+                data={user?.specializations}
+                emptyText="No specializations added"
+                color="teal"
+              />
             </div>
           </div>
         </div>
@@ -184,3 +165,45 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+/* ---------------- Components ---------------- */
+
+const InfoRow = ({ icon, label, value, highlight }) => (
+  <div className="flex items-center justify-between">
+    <span className="flex items-center gap-2 text-gray-700">
+      {icon}
+      {label}
+    </span>
+    <span
+      className={`font-semibold ${
+        highlight ? "text-teal-700 capitalize" : "text-gray-800"
+      }`}
+    >
+      {value}
+    </span>
+  </div>
+);
+
+const TagSection = ({ title, icon, data = [], emptyText, color }) => (
+  <div>
+    <h3 className="flex items-center gap-2 font-semibold text-gray-800 mb-3">
+      {icon}
+      {title}
+    </h3>
+
+    {data.length > 0 ? (
+      <div className="flex flex-wrap gap-2">
+        {data.map((item, i) => (
+          <span
+            key={i}
+            className={`px-3 py-1 bg-${color}-100 text-${color}-800 rounded-full text-sm font-medium`}
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    ) : (
+      <p className="text-sm text-gray-400 italic">{emptyText}</p>
+    )}
+  </div>
+);

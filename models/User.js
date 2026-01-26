@@ -129,12 +129,15 @@ const UserSchema = new mongoose.Schema({
     ],
     default: [],
   },
-  socialMediaLinks: [
-    {
-      platform: String,
-      url: String,
-    },
-  ],
+  socialMediaLinks: {
+    type: [
+      {
+        platform: String,
+        url: String,
+      },
+    ],
+    default: [],
+  },
   openAppointmentsDates: {
     type: [Date],
     default: [],
