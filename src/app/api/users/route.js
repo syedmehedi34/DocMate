@@ -8,8 +8,8 @@ export async function GET() {
   try {
     const users = await User.find(
       {},
-      "name email role isPatient doctorCategory doctorCvUrl doctorImageUrl chamberDays chamberOpeningTime chamberClosingTime",
-      // { password: 0 },
+      // "name email role isPatient doctorCategory doctorCvUrl doctorImageUrl chamberDays chamberOpeningTime chamberClosingTime",
+      { password: 0 },
     );
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
