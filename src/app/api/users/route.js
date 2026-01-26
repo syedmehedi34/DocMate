@@ -8,10 +8,14 @@ export async function GET() {
   try {
     const users = await User.find(
       {},
-      "name email role isPatient doctorCategory doctorCvUrl doctorImageUrl"
-    ); // ✅ Include doctorCategory, doctorCvUrl, doctorImageUrl
+      "name email role isPatient doctorCategory doctorCvUrl doctorImageUrl chamberDays chamberOpeningTime chamberClosingTime",
+      // { password: 0 },
+    );
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch users" },
+      { status: 500 },
+    );
   }
 }

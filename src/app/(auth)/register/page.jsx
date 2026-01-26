@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
   // Validation regex patterns
   const validate = {
-    name: /^[a-zA-Z ]{2,30}$/,
+    name: /^[a-zA-Z. ]{2,30}$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     password: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
   };
