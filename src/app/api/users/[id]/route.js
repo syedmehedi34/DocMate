@@ -5,11 +5,14 @@ import { NextResponse } from "next/server";
 // get user by ID (GET request)
 export async function GET(req, { params }) {
   await dbConnect();
+
   try {
-    const user = await User.findById(params.id);
+    const user = await User.findById(params.id).select("-password");
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     return NextResponse.json(
