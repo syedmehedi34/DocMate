@@ -38,6 +38,7 @@ const DoctorPage = () => {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
+  // open appointment modal
   const handleAppointmentClick = (doctor) => {
     setSelectedDoctor(doctor);
     setShowModal(true);
@@ -108,6 +109,7 @@ const DoctorPage = () => {
     }
   };
 
+  // fetch all doctors
   useEffect(() => {
     const fetchDoctors = async () => {
       setIsLoadingDoctors(true);
@@ -133,9 +135,11 @@ const DoctorPage = () => {
 
   return (
     <div className="max-w-screen-xl md:mx-auto mx-5 pb-12">
-      <h2 className="text-xl md:text-3xl text-center font-bold my-8">
-        Our Doctors
-      </h2>
+      <div>
+        <h2 className="text-xl md:text-3xl text-center font-bold my-8">
+          Our Doctors
+        </h2>
+      </div>
 
       {isLoadingDoctors ? (
         <div className="flex justify-center items-center h-64">
