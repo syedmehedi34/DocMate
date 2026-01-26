@@ -78,6 +78,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  doctorNumber: {
+    type: String,
+    default: "",
+  },
+  gender: {
+    type: String,
+    enum: ["male", "female", "Not Mentioned"],
+    default: "Not Mentioned",
+  },
   consultationFee: {
     type: Number,
     default: 0,
@@ -87,12 +96,85 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
   worksAndExperiences: {
-    type: [String],
+    type: [
+      {
+        workedAt: String,
+        position: String,
+        year: String,
+      },
+    ],
     default: [],
   },
+
   specializations: {
     type: [String],
     default: [],
+  },
+  joinedHospitals: {
+    type: [String],
+    default: [],
+  },
+  currentStatus: {
+    type: String,
+    enum: ["available", "on-leave"],
+    default: "available",
+  },
+  educations: {
+    type: [
+      {
+        degree: String,
+        institution: String,
+        year: String,
+      },
+    ],
+    default: [],
+  },
+  socialMediaLinks: [
+    {
+      platform: String,
+      url: String,
+    },
+  ],
+  openAppointmentsDates: {
+    type: [Date],
+    default: [],
+  },
+  reviews: {
+    type: [
+      {
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        email: {
+          type: String,
+          required: true,
+          lowercase: true,
+          trim: true,
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+          required: true,
+        },
+        reviewMessage: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    default: [],
+  },
+  maxPatientCount: {
+    type: Number,
+    default: 0,
   },
 });
 
