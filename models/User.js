@@ -58,11 +58,11 @@ const UserSchema = new mongoose.Schema({
     default: [],
     required: false,
   },
-  abouts: {
+  about: {
     type: String,
     default: "",
   },
-  degrees: {
+  degree: {
     type: [String],
     default: [],
   },
@@ -100,7 +100,7 @@ const UserSchema = new mongoose.Schema({
       {
         workedAt: String,
         position: String,
-        year: String,
+        duration: String,
       },
     ],
     default: [],
