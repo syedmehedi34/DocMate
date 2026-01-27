@@ -12,31 +12,35 @@ import Pagination from "@/components/Pagination";
 const DoctorPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [filteredDoctors, setFilteredDoctors] = useState([]);
-  const [paginatedDoctors, setPaginatedDoctors] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
+  const [paginatedDoctors, setPaginatedDoctors] = useState([]);
 
   const currency = process.env.CURRENCY || "৳";
   const itemsPerPage = 6;
 
-  /* ================= FETCH ================= */
+  /* ================= FETCH DOCTORS ================= */
   useEffect(() => {
     const fetchDoctors = async () => {
-      const res = await fetch("/api/users");
-      const data = await res.json();
-      const doctorList = data.filter((u) => u.role === "doctor");
+      try {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+        const doctorList = data.filter((u) => u.role === "doctor");
 
-      setDoctors(doctorList);
-      setFilteredDoctors(doctorList);
-      setIsLoading(false);
+        setDoctors(doctorList);
+        setFilteredDoctors(doctorList);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setTimeout(() => setIsLoading(false), 600);
+      }
     };
 
     fetchDoctors();
   }, []);
 
-  /* ================= FILTER ================= */
+  /* ================= FILTER LOGIC ================= */
   useEffect(() => {
     let result = [...doctors];
 
@@ -67,6 +71,7 @@ const DoctorPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+      {/* HEADER */}
       <AllDoctorsHeader
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -75,6 +80,7 @@ const DoctorPage = () => {
         categories={["All", ...new Set(doctors.map((d) => d.doctorCategory))]}
       />
 
+      {/* DOCTORS GRID */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {paginatedDoctors.map((doctor) => (
@@ -84,7 +90,7 @@ const DoctorPage = () => {
             >
               <div className="relative h-60">
                 <Image
-                  src={doctor.doctorImageUrl}
+                  src={doctor.doctorImageUrl || "/placeholder-doctor.jpg"}
                   alt={doctor.name}
                   fill
                   className="object-cover"
@@ -92,34 +98,59 @@ const DoctorPage = () => {
               </div>
 
               <div className="p-6">
-                <h3 className="text-xl font-bold">{doctor.name}</h3>
+                <div className="flex justify-between mb-2">
+                  <div>
+                    <h3 className="text-xl font-bold">{doctor.name}</h3>
 
-                <p className="capitalize badge bg-gradient-to-r from-sky-700 to-cyan-600 text-white font-semibold mt-1">
-                  {doctor.doctorCategory}
+                    <p className="capitalize badge bg-gradient-to-r from-sky-700 to-cyan-600 text-white font-semibold mt-1">
+                      {doctor.doctorCategory}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-amber-50 badge rounded-full">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span className="text-sm font-semibold">
+                      {calculateRating(doctor.reviews)}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                  <Award className="w-4 h-4" />
+                  {doctor.degree?.join(", ") || "MBBS"}
                 </p>
 
-                <p className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  {calculateRating(doctor.reviews)}
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                  <Calendar className="w-4 h-4" />
+                  {doctor.experienceYear}+ years experience
                 </p>
 
-                <p className="flex items-center gap-2 text-sm text-gray-600">
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                   <MapPin className="w-4 h-4" />
                   {doctor.location}
                 </p>
 
-                <Link
-                  href={`/doctors/${doctor._id}`}
-                  className="btn mt-4 w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-                >
-                  View Profile
-                </Link>
+                <div className="flex justify-between items-center pt-4 border-t border-[#212121]/30">
+                  <div>
+                    <p className="text-sm text-gray-500">Consultation Fee</p>
+                    <p className="text-xl font-bold">
+                      {currency} {doctor.consultationFee}
+                    </p>
+                  </div>
+
+                  <Link
+                    href={`/doctors/${doctor._id}`}
+                    className="btn rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                  >
+                    View Profile
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* PAGINATION */}
+        {/* PAGINATION COMPONENT */}
         <Pagination
           data={filteredDoctors}
           itemsPerPage={itemsPerPage}

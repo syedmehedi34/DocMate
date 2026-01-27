@@ -7,18 +7,18 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  const currentItems = data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const startItem =
+    data.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, data.length);
 
-  /* 🔹 send sliced data to parent */
+  /* 🔹 send current page items to parent */
   useEffect(() => {
+    const currentItems = data.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage,
+    );
     onPageDataChange(currentItems);
-  }, [currentPage, data]);
+  }, [currentPage, data, itemsPerPage]);
 
   /* 🔹 reset page when data changes */
   useEffect(() => {
