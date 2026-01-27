@@ -15,6 +15,7 @@ const DoctorPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const currency = process.env.CURRENCY || "৳";
 
   const itemsPerPage = 6;
 
@@ -131,52 +132,92 @@ const DoctorPage = () => {
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-2 flex gap-2">
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                   <Award className="w-4 h-4" />
                   {doctor.degree?.join(", ") || "MBBS"}
                 </p>
 
-                <p className="text-sm text-gray-600 mb-2 flex gap-2">
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                   <Calendar className="w-4 h-4" />
                   {doctor.experienceYear}+ years experience
                 </p>
 
-                <p className="text-sm text-gray-600 mb-4 flex gap-2">
+                <p className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                   <MapPin className="w-4 h-4" />
                   {doctor.location}
                 </p>
 
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex justify-between items-center pt-4 border-t border-[#212121]/30">
                   <div>
                     <p className="text-sm text-gray-500">Consultation Fee</p>
                     <p className="text-xl font-bold">
-                      ৳{doctor.consultationFee}
+                      {currency} {doctor.consultationFee}
                     </p>
                   </div>
 
                   <Link
                     href={`/doctors/${doctor._id}`}
-                    className="btn bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                    className="btn rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
                   >
                     View Profile
                   </Link>
-                </div>
-
-                <div className="mt-4 flex gap-4 text-sm text-gray-500">
-                  <a href={`tel:${doctor.doctorNumber}`} className="flex gap-1">
-                    <Phone className="w-4 h-4" /> Call
-                  </a>
-
-                  <a href={`mailto:${doctor.email}`} className="flex gap-1">
-                    <Mail className="w-4 h-4" /> Email
-                  </a>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* (Optional) Pagination UI can go here */}
+        {/* ================= PAGINATION UI ================= */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-12 flex-wrap">
+            {/* Prev Button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg border font-semibold transition
+        ${
+          currentPage === 1
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-white hover:bg-blue-50 text-blue-600"
+        }`}
+            >
+              Prev
+            </button>
+
+            {/* Page Numbers */}
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const page = index + 1;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition
+            ${
+              currentPage === page
+                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg"
+                : "bg-white text-gray-700 hover:bg-blue-50"
+            }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            {/* Next Button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg border font-semibold transition
+        ${
+          currentPage === totalPages
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-white hover:bg-blue-50 text-blue-600"
+        }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
