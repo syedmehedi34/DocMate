@@ -5,9 +5,11 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
-import { ChevronsRight } from "lucide-react";
+import { ChevronsRight, Wallet } from "lucide-react";
 import { FaStreetView, FaHourglassStart } from "react-icons/fa";
 import { IoCall } from "react-icons/io5";
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+// import "react-tabs/style/react-tabs.css";
 
 import {
   FaFacebook,
@@ -55,7 +57,7 @@ const DoctorDetailsAndAppointment = () => {
 
   return (
     <>
-      {/* ================= HEADER (UNCHANGED) ================= */}
+      {/* ================= HEADER ================= */}
       <div
         className="relative h-96 text-black mb-16 md:mb-8"
         style={{
@@ -93,14 +95,14 @@ const DoctorDetailsAndAppointment = () => {
         </section>
       </div>
 
-      {/* ================= DOCTOR PROFILE CARD ================= */}
-      <section className="max-w-6xl mx-auto my-20 p-6 bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col lg:flex-row gap-8">
+      {/* ================= Profile Card ================= */}
+      <section className="max-w-6xl mx-auto my-20 p-6 bg-white rounded-2xl hover:shadow-2xl  transition-all duration-300  border border-gray-100 flex flex-col lg:flex-row gap-8">
         {/* LEFT SIDE */}
         <div className="flex gap-6 flex-1">
           <Image
             src={doctor?.doctorImageUrl || "/placeholder-doctor.jpg"}
             alt={doctor?.name}
-            width={180}
+            width={220}
             height={180}
             className="rounded-2xl object-cover border shadow"
           />
@@ -110,7 +112,7 @@ const DoctorDetailsAndAppointment = () => {
               {doctor?.name}
             </h2>
 
-            <p className="capitalize text-gray-600 font-medium">
+            <p className="capitalize bg-blue-800/90 shadow shadow-gray-500 badge border border-blue-300 rounded-full text-white font-medium">
               {doctor?.doctorCategory}
             </p>
 
@@ -132,7 +134,7 @@ const DoctorDetailsAndAppointment = () => {
               {doctor?.specializations?.map((spec, idx) => (
                 <span
                   key={idx}
-                  className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
+                  className="bg-blue-50/50 border border-blue-100 text-blue-800 text-sm px-3 py-1 rounded-[5px] hover:bg-blue-100 transition cursor-default"
                 >
                   {spec}
                 </span>
@@ -150,7 +152,8 @@ const DoctorDetailsAndAppointment = () => {
               {doctor?.joinedHospitals?.[1]}
             </p>
 
-            <p className="font-semibold text-gray-800">
+            <p className="font-semibold text-[#93C249] flex items-center gap-2">
+              <Wallet size={19} />
               Consultation Fee: {doctor?.consultationFee}
               {currency}
             </p>
@@ -167,7 +170,7 @@ const DoctorDetailsAndAppointment = () => {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-[#93C249] hover:text-white flex items-center justify-center transition"
+                    className="w-10 h-10 rounded-[5px] border border-[#93C249]/10 bg-gray-100 hover:bg-[#93C249] hover:text-white flex items-center justify-center transition-all duration-300"
                   >
                     <Icon size={18} />
                   </a>
@@ -176,10 +179,83 @@ const DoctorDetailsAndAppointment = () => {
             </div>
           </div>
 
-          <button className="mt-6 bg-[#93C249] hover:bg-[#7cab32] text-white py-2 rounded-lg font-semibold shadow transition">
+          <button className="mt-6 bg-[#93C249] hover:bg-[#7cab32] text-white py-2 rounded-[5px] font-semibold shadow transition">
             Appointment Available
           </button>
         </div>
+      </section>
+
+      {/* ================= TABS SECTION ================= */}
+      <section className="max-w-6xl mx-auto my-16 bg-white rounded-2xl border  border-gray-200 px-6 py-8">
+        <Tabs>
+          {/* TAB HEADER */}
+          <TabList className="flex justify-center gap-16 border-b border-gray-200">
+            <Tab
+              className="pb-4 text-lg font-extrabold text-[#003367]  cursor-pointer outline-none transition-all duration-150 w-48 text-center"
+              selectedClassName="text-lime-600 text-emerald-600 border-b-2"
+            >
+              Overview
+            </Tab>
+
+            <Tab
+              className="pb-4 text-lg font-extrabold text-[#003367]  cursor-pointer outline-none transition-all duration-150 w-48 text-center"
+              selectedClassName="text-lime-600 border-b-2"
+            >
+              Booking
+            </Tab>
+          </TabList>
+
+          {/* ================= OVERVIEW ================= */}
+          <TabPanel>
+            <div className="mt-10 space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold text-[#003367] mb-3">
+                  About Me
+                </h3>
+                <p className="text-gray-700 leading-relaxed">{doctor?.about}</p>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold text-[#003367] mb-4">
+                  Education
+                </h3>
+                <ul className="space-y-2">
+                  {doctor?.educations?.map((edu) => (
+                    <li key={edu._id}>
+                      <span className="font-semibold">{edu.degree}</span>,{" "}
+                      {edu.institution} ({edu.year})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </TabPanel>
+
+          {/* ================= BOOKING ================= */}
+          <TabPanel>
+            <div className="mt-10 space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold text-[#003367] mb-4">
+                  Available Days
+                </h3>
+                <div className="flex gap-3 flex-wrap">
+                  {doctor?.chamberDays?.map((day, i) => (
+                    <span
+                      key={i}
+                      className="px-4 py-1 rounded-full border text-sm"
+                    >
+                      {day}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <button className="bg-[#93C249] hover:bg-[#7cab32] text-white px-8 py-2 rounded-md font-semibold transition">
+                Book Appointment
+              </button>
+            </div>
+          </TabPanel>
+        </Tabs>
       </section>
     </>
   );
