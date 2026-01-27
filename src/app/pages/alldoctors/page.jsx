@@ -139,7 +139,7 @@ const DoctorPage = () => {
                   </div>
 
                   <Link
-                    href={`/doctors/${doctor._id}`}
+                    href={`/pages/alldoctors/${doctor._id}`}
                     className="btn rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
                   >
                     View Profile
