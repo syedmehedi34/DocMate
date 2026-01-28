@@ -70,7 +70,7 @@ const DoctorDetailsAndAppointment = () => {
 
           {/* ================= BOOKING ================= */}
           <TabPanel>
-            <Bookings doctor={doctor} />
+            <Bookings doctor={doctor} currency={currency} />
           </TabPanel>
         </Tabs>
       </section>

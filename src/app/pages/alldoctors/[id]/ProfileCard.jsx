@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { Wallet } from "lucide-react";
+import { CircleCheckBig, CircleX, Wallet } from "lucide-react";
 import {
   FaStreetView,
   FaHourglassStart,
@@ -109,10 +109,12 @@ const ProfileCard = ({ doctor, currency }) => {
             </div>
           </div>
 
-          <button className="mt-6 bg-[#93C249] hover:bg-[#7cab32] text-white py-2 rounded-[5px] font-semibold shadow transition">
-            {/* <CircleCheckBig />
-            <CircleX /> */}
-            Appointment Available
+          <button className="flex items-center justify-center gap-2 mt-6 bg-[#93C249] hover:bg-[#7cab32] text-white py-2 rounded-[5px] font-semibold shadow transition">
+            <span>
+              <CircleCheckBig size={18} />
+              {/* <CircleX /> */}
+            </span>
+            <span>Appointment Available</span>
           </button>
         </div>
       </section>
