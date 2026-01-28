@@ -1,3 +1,4 @@
+import useUserById from "@/hooks/useUserById";
 import { ChevronDown, CircleCheckBig, RotateCcw } from "lucide-react";
 import React, { useState } from "react";
 import { FaLongArrowAltRight } from "react-icons/fa";
@@ -5,6 +6,11 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 const Bookings = ({ doctor, currency }) => {
+  const { user, isLoading, error } = useUserById();
+  //   console.log(user);
+  //   console.log(doctor);
+
+  //   date filtering function
   const getFutureDates = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -52,18 +58,37 @@ const Bookings = ({ doctor, currency }) => {
   };
 
   const handleSubmit = () => {
-    if (!agreeCashPayment) return; // extra safety (button already disabled)
+    if (!agreeCashPayment) return;
 
     const submissionData = {
-      ...form,
-      selectedDate,
+      // patient info
+      patientName: form.name,
+      patientAge: form.age,
+      patientGender: form.gender,
+      patientEmail: form.email,
+      patientPhone: form.phone,
+      appointmentDate: selectedDate,
       consultationFee: doctor?.consultationFee,
       currency,
+      cashOnAppointmentDay: true,
+      diseaseDetails: form.disease,
       appliedAt: new Date().toISOString(),
-      cashOnAppointment: true,
+
+      // applicant info
+      applicantUserId: user?._id,
+      applicantUserName: user?.name,
+      applicantUserEmail: user?.email,
+
+      // doctor info
+      doctorId: doctor?._id,
+      doctorName: doctor?.name,
+      doctorEmail: doctor?.email,
+
+      // appointment status
+      isAppointmentConfirmed: false,
     };
 
-    console.log("Appointment Submission Data:", submissionData);
+    console.log(submissionData);
 
     // send to backend
     // fetch('/api/book-appointment', {

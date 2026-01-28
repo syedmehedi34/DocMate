@@ -31,7 +31,6 @@ const DoctorDetailsAndAppointment = () => {
     fetchDoctor();
   }, [id]);
 
-  console.log(doctor);
   if (loading) return <p className="text-center my-20">Loading...</p>;
   if (!doctor) return <p className="text-center my-20">Doctor not found</p>;
 
