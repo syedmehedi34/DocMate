@@ -6,6 +6,7 @@ import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import DoctorDetailsPageHeader from "./DoctorDetailsPageHeader";
 import ProfileCard from "./ProfileCard";
 import DoctorDetailsOverview from "./DoctorDetailsOverview";
+import Bookings from "./Bookings";
 // import "react-tabs/style/react-tabs.css";
 
 const DoctorDetailsAndAppointment = () => {
@@ -69,27 +70,7 @@ const DoctorDetailsAndAppointment = () => {
 
           {/* ================= BOOKING ================= */}
           <TabPanel>
-            <div className="mt-10 space-y-8">
-              <div>
-                <h3 className="text-2xl font-bold text-[#003367] mb-4">
-                  Available Days
-                </h3>
-                <div className="flex gap-3 flex-wrap">
-                  {doctor?.chamberDays?.map((day, i) => (
-                    <span
-                      key={i}
-                      className="px-4 py-1 rounded-full border text-sm"
-                    >
-                      {day}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button className="bg-[#93C249] hover:bg-[#7cab32] text-white px-8 py-2 rounded-md font-semibold transition">
-                Book Appointment
-              </button>
-            </div>
+            <Bookings doctor={doctor} />
           </TabPanel>
         </Tabs>
       </section>
