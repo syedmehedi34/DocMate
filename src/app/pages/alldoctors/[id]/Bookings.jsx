@@ -5,7 +5,6 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 const Bookings = ({ doctor, currency }) => {
-  // future dates + formatted date
   const getFutureDates = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -41,6 +40,7 @@ const Bookings = ({ doctor, currency }) => {
   });
 
   const [selectedDate, setSelectedDate] = useState("");
+  const [agreeCashPayment, setAgreeCashPayment] = useState(false);
 
   const handleSelectDate = (date) => {
     setSelectedDate(date);
@@ -51,17 +51,57 @@ const Bookings = ({ doctor, currency }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = () => {
+    if (!agreeCashPayment) return; // extra safety (button already disabled)
+
+    const submissionData = {
+      ...form,
+      selectedDate,
+      consultationFee: doctor?.consultationFee,
+      currency,
+      appliedAt: new Date().toISOString(),
+      cashOnAppointment: true,
+    };
+
+    console.log("Appointment Submission Data:", submissionData);
+
+    // send to backend
+    // fetch('/api/book-appointment', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(submissionData),
+    // });
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: "",
+      age: "",
+      email: "",
+      phone: "",
+      gender: "",
+      disease: "",
+    });
+    setSelectedDate("");
+    setAgreeCashPayment(false);
+  };
+
+  const isFormValid =
+    selectedDate &&
+    form.name.trim() &&
+    form.phone.trim() &&
+    form.gender &&
+    agreeCashPayment;
+
   return (
     <div className="mt-6 space-y-8">
-      {/* chamber days */}
+      {/* Chamber days */}
       <div>
         <h3 className="text-xl font-bold text-[#003367] mb-3">
           Available Dates
         </h3>
-
         <div className="flex flex-wrap items-center gap-2 text-[#003367]">
           <FaLongArrowAltRight size={20} className="text-lime-600" />
-
           {doctor?.chamberDays?.map((day, i) => (
             <span key={i} className="text-sm font-medium">
               {day}
@@ -71,25 +111,23 @@ const Bookings = ({ doctor, currency }) => {
         </div>
       </div>
 
-      {/* appointment dates */}
+      {/* Available dates */}
       <div className="border border-gray-200 rounded-2xl p-5 shadow-xs">
         <h3 className="text-xl font-bold text-[#003367] mb-4">
           Available Consultation Dates
         </h3>
-
         {futureDates.length > 0 ? (
           <div className="flex flex-wrap gap-3">
             {futureDates.map((date, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSelectDate(date)}
-                className={`px-4 py-2 rounded-md text-sm font-semibold transition-all duration-300 cursor-pointer
+                className={`px-4 py-2 rounded-md text-sm font-semibold transition-all duration-300
                   ${
                     selectedDate === date
                       ? "bg-[#7CAB33] text-white"
                       : "bg-gray-200 text-[#003367] hover:bg-[#7CAB33]/60 hover:text-white"
-                  }
-                `}
+                  }`}
               >
                 {date}
               </button>
@@ -102,9 +140,8 @@ const Bookings = ({ doctor, currency }) => {
         )}
       </div>
 
-      {/* Appointment Form */}
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* LEFT */}
+        {/* LEFT - Form */}
         <div>
           <h3 className="text-2xl font-bold text-[#003367] mb-6">
             Appointment Form
@@ -119,6 +156,7 @@ const Bookings = ({ doctor, currency }) => {
                 value={form.name}
                 onChange={handleChange}
                 className="input focus:outline-none focus:border-2 focus:border-[#93C249]"
+                required
               />
               <input
                 type="number"
@@ -139,10 +177,9 @@ const Bookings = ({ doctor, currency }) => {
               className="input w-full focus:outline-none focus:border-2 focus:border-[#93C249]"
             />
 
-            {/* phone + gender */}
-            <div className="flex  items-center gap-4">
+            <div className="flex items-center gap-4">
               <PhoneInput
-                country={"bd"}
+                country="bd"
                 value={form.phone}
                 onChange={(phone) => setForm((prev) => ({ ...prev, phone }))}
                 inputStyle={{
@@ -151,12 +188,8 @@ const Bookings = ({ doctor, currency }) => {
                   fontSize: "14px",
                   borderRadius: "4px",
                 }}
-                buttonStyle={{
-                  borderRadius: "4px 0 0 4px",
-                }}
-                containerStyle={{
-                  width: "100%",
-                }}
+                buttonStyle={{ borderRadius: "4px 0 0 4px" }}
+                containerStyle={{ width: "100%" }}
                 enableSearch
                 placeholder="Enter mobile number"
               />
@@ -166,15 +199,17 @@ const Bookings = ({ doctor, currency }) => {
                   name="gender"
                   value={form.gender}
                   onChange={handleChange}
-                  className="input focus:outline-none focus:border-2 focus:border-[#93C249]"
+                  className="input focus:outline-none focus:border-2 focus:border-[#93C249] w-full"
+                  required
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
-                <span className="absolute top-2 right-3">
-                  <ChevronDown className="text-gray-500" />
-                </span>
+                <ChevronDown
+                  className="absolute top-3 right-3 text-gray-500"
+                  size={16}
+                />
               </div>
             </div>
 
@@ -187,20 +222,28 @@ const Bookings = ({ doctor, currency }) => {
               className="textarea textarea-lg w-full placeholder:text-sm focus:outline-none focus:border-2 focus:border-[#93C249]"
             />
 
-            <div className="flex gap-4 mt-6">
-              {/* tick mark */}
-              {/*  */}
-              <input type="checkbox" className="checkbox checkbox-sm" />
-              <p className="text-sm text-gray-600">
-                The consultation fee will be paid in cash on the appointment
-                day.
-              </p>
-              {/*  */}
+            {/* Required Checkbox */}
+            <div className="flex items-center gap-3 mt-6">
+              <input
+                type="checkbox"
+                id="cash-agreement"
+                checked={agreeCashPayment}
+                onChange={(e) => setAgreeCashPayment(e.target.checked)}
+                className="checkbox checkbox-sm mt-1"
+                required
+              />
+              <label
+                htmlFor="cash-agreement"
+                className="text-sm text-gray-700 cursor-pointer"
+              >
+                <strong>I agree:</strong> The consultation fee will be paid in
+                cash on the appointment day.
+              </label>
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT - Summary */}
         <div>
           <h3 className="text-2xl font-bold text-[#003367] mb-6">
             Confirm Your Booking
@@ -211,25 +254,23 @@ const Bookings = ({ doctor, currency }) => {
               <span className="text-lime-600 font-semibold">
                 Patient Name :
               </span>{" "}
-              {form.name || ""}
+              {form.name || "—"}
             </p>
             <p>
               <span className="text-lime-600 font-semibold">Age :</span>{" "}
-              {form.age ? `${form.age} Years` : ""}
+              {form.age ? `${form.age} Years` : "—"}
             </p>
             <p>
               <span className="text-lime-600 font-semibold">Gender :</span>{" "}
-              {form.gender || ""}
+              {form.gender || "—"}
             </p>
             <p>
               <span className="text-lime-600 font-semibold">Email :</span>{" "}
-              {form.email || ""}
+              {form.email || "—"}
             </p>
             <p>
-              <span className="text-lime-600 font-semibold">
-                Phone Number :
-              </span>{" "}
-              {form.phone || ""}
+              <span className="text-lime-600 font-semibold">Phone :</span>{" "}
+              {form.phone || "—"}
             </p>
             <p>
               <span className="text-lime-600 font-semibold">Date :</span>{" "}
@@ -237,41 +278,40 @@ const Bookings = ({ doctor, currency }) => {
             </p>
             <p>
               <span className="text-lime-600 font-semibold">Fees :</span>{" "}
-              {doctor?.consultationFee} {currency}
+              {doctor?.consultationFee
+                ? `${doctor.consultationFee} ${currency}`
+                : "—"}
             </p>
-
+            <p>
+              <span className="text-lime-600 font-semibold">Payment :</span>{" "}
+              {agreeCashPayment ? "Cash on appointment day" : "Not confirmed"}
+            </p>
             <p>
               <span className="text-lime-600 font-semibold">
                 Disease Details :
-              </span>
-              {" " + form.disease}
+              </span>{" "}
+              {form.disease || "—"}
             </p>
 
-            {/* buttons */}
-            <div className="mt-6 flex gap-2 items-center">
+            <div className="mt-8 flex gap-3">
               <button
-                onClick={() => {
-                  setForm({
-                    name: "",
-                    age: "",
-                    email: "",
-                    phone: "",
-                    gender: "",
-                    disease: "",
-                  });
-                  setSelectedDate("");
-                }}
+                onClick={resetForm}
                 className="btn btn-error flex-1 text-white"
               >
-                <span>
-                  <RotateCcw size={16} />
-                </span>
+                <RotateCcw size={16} />
                 Reset
               </button>
-              <button className="btn btn-primary border-lime-600 text-white rounded bg-lime-600 flex-1">
-                <span>
-                  <CircleCheckBig size={16} />
-                </span>
+
+              <button
+                onClick={handleSubmit}
+                disabled={!isFormValid}
+                className={`btn flex-1 text-white ${
+                  isFormValid
+                    ? "bg-lime-600 border-lime-600 hover:bg-lime-700"
+                    : "btn-disabled bg-gray-400 border-gray-400"
+                }`}
+              >
+                <CircleCheckBig size={16} />
                 Take Appointment
               </button>
             </div>
