@@ -1,16 +1,30 @@
 import useUserById from "@/hooks/useUserById";
 import { ChevronDown, CircleCheckBig, RotateCcw } from "lucide-react";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { FaLongArrowAltRight } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 const Bookings = ({ doctor, currency }) => {
-  const { user, isLoading, error } = useUserById();
-  //   console.log(user);
-  //   console.log(doctor);
+  const { user, isLoading: userLoading, error: userError } = useUserById();
 
-  //   date filtering function
+  // Form State
+  const [form, setForm] = useState({
+    name: "",
+    age: "",
+    email: "",
+    phone: "",
+    gender: "",
+    disease: "",
+  });
+
+  const [selectedDate, setSelectedDate] = useState("");
+  const [agreeCashPayment, setAgreeCashPayment] = useState(false);
+
+  // Submit states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const getFutureDates = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -35,19 +49,6 @@ const Bookings = ({ doctor, currency }) => {
 
   const futureDates = getFutureDates();
 
-  // Form State
-  const [form, setForm] = useState({
-    name: "",
-    age: "",
-    email: "",
-    phone: "",
-    gender: "",
-    disease: "",
-  });
-
-  const [selectedDate, setSelectedDate] = useState("");
-  const [agreeCashPayment, setAgreeCashPayment] = useState(false);
-
   const handleSelectDate = (date) => {
     setSelectedDate(date);
   };
@@ -57,45 +58,76 @@ const Bookings = ({ doctor, currency }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    if (!agreeCashPayment) return;
+  const handleSubmit = async () => {
+    if (!agreeCashPayment) {
+      return;
+    }
+
+    if (!selectedDate) {
+      return;
+    }
+
+    if (!form.name.trim()) {
+      return;
+    }
+
+    if (!form.phone.trim()) {
+      return;
+    }
+
+    if (!form.gender) {
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const submissionData = {
-      // patient info
-      patientName: form.name,
-      patientAge: form.age,
+      patientName: form.name.trim(),
+      patientAge: form.age ? Number(form.age) : undefined,
       patientGender: form.gender,
-      patientEmail: form.email,
-      patientPhone: form.phone,
+      patientEmail: form.email?.trim() || undefined,
+      patientPhone: form.phone.trim(),
       appointmentDate: selectedDate,
       consultationFee: doctor?.consultationFee,
-      currency,
+      currency: currency || "BDT",
       cashOnAppointmentDay: true,
-      diseaseDetails: form.disease,
+      diseaseDetails: form.disease?.trim() || undefined,
       appliedAt: new Date().toISOString(),
 
-      // applicant info
       applicantUserId: user?._id,
-      applicantUserName: user?.name,
-      applicantUserEmail: user?.email,
+      applicantUserName: user?.name?.trim(),
+      applicantUserEmail: user?.email?.trim(),
 
-      // doctor info
       doctorId: doctor?._id,
-      doctorName: doctor?.name,
-      doctorEmail: doctor?.email,
+      doctorName: doctor?.name?.trim(),
+      doctorEmail: doctor?.email?.trim(),
 
-      // appointment status
       isAppointmentConfirmed: false,
     };
 
-    console.log(submissionData);
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
 
-    // send to backend
-    // fetch('/api/book-appointment', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(submissionData),
-    // });
+      const result = await response.json();
+      console.log(result);
+      toast.success("Appointment booked successfully!");
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to book appointment");
+      }
+
+      resetForm();
+    } catch (err) {
+      console.log(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -116,14 +148,27 @@ const Bookings = ({ doctor, currency }) => {
     form.name.trim() &&
     form.phone.trim() &&
     form.gender &&
-    agreeCashPayment;
+    agreeCashPayment &&
+    !isSubmitting;
+
+  if (userLoading) {
+    return <div className="text-center py-8">Loading user information...</div>;
+  }
+
+  if (userError || !user) {
+    return (
+      <div className="text-center py-8 text-red-600">
+        Please log in to book an appointment.
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6 space-y-8">
       {/* Chamber days */}
       <div>
         <h3 className="text-xl font-bold text-[#003367] mb-3">
-          Available Dates
+          Available Days
         </h3>
         <div className="flex flex-wrap items-center gap-2 text-[#003367]">
           <FaLongArrowAltRight size={20} className="text-lime-600" />
@@ -177,7 +222,7 @@ const Bookings = ({ doctor, currency }) => {
               <input
                 type="text"
                 name="name"
-                placeholder="Enter Name"
+                placeholder="Enter Name *"
                 value={form.name}
                 onChange={handleChange}
                 className="input focus:outline-none focus:border-2 focus:border-[#93C249]"
@@ -190,6 +235,7 @@ const Bookings = ({ doctor, currency }) => {
                 value={form.age}
                 onChange={handleChange}
                 className="input focus:outline-none focus:border-2 focus:border-[#93C249]"
+                min="0"
               />
             </div>
 
@@ -216,7 +262,7 @@ const Bookings = ({ doctor, currency }) => {
                 buttonStyle={{ borderRadius: "4px 0 0 4px" }}
                 containerStyle={{ width: "100%" }}
                 enableSearch
-                placeholder="Enter mobile number"
+                placeholder="Enter mobile number *"
               />
 
               <div className="w-[40%] relative">
@@ -227,7 +273,7 @@ const Bookings = ({ doctor, currency }) => {
                   className="input focus:outline-none focus:border-2 focus:border-[#93C249] w-full"
                   required
                 >
-                  <option value="">Select Gender</option>
+                  <option value="">Select Gender *</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
@@ -247,7 +293,6 @@ const Bookings = ({ doctor, currency }) => {
               className="textarea textarea-lg w-full placeholder:text-sm focus:outline-none focus:border-2 focus:border-[#93C249]"
             />
 
-            {/* Required Checkbox */}
             <div className="flex items-center gap-3 mt-6">
               <input
                 type="checkbox"
@@ -322,6 +367,7 @@ const Bookings = ({ doctor, currency }) => {
               <button
                 onClick={resetForm}
                 className="btn btn-error flex-1 text-white"
+                disabled={isSubmitting}
               >
                 <RotateCcw size={16} />
                 Reset
@@ -330,14 +376,20 @@ const Bookings = ({ doctor, currency }) => {
               <button
                 onClick={handleSubmit}
                 disabled={!isFormValid}
-                className={`btn flex-1 text-white ${
-                  isFormValid
-                    ? "bg-lime-600 border-lime-600 hover:bg-lime-700"
-                    : "btn-disabled bg-gray-400 border-gray-400"
-                }`}
+                className={`btn flex-1 text-white flex items-center justify-center gap-2
+                  ${isFormValid ? "bg-lime-600 hover:bg-lime-700" : "bg-gray-400 cursor-not-allowed"}`}
               >
-                <CircleCheckBig size={16} />
-                Take Appointment
+                {isSubmitting ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Booking...
+                  </>
+                ) : (
+                  <>
+                    <CircleCheckBig size={16} />
+                    Take Appointment
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -348,3 +400,4 @@ const Bookings = ({ doctor, currency }) => {
 };
 
 export default Bookings;
+// src/app/api/appointments/route.js

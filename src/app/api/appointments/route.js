@@ -6,122 +6,106 @@ export async function POST(req) {
   await dbConnect();
 
   try {
+    const body = await req.json();
+
     const {
       doctorId,
       doctorName,
       doctorEmail,
-      userId,
-      userName,
-      userEmail,
+      applicantUserId,
+      applicantUserName,
+      applicantUserEmail,
       patientName,
-      phone,
-      reason,
-      date,
-      time,
-    } = await req.json();
+      patientAge,
+      patientGender,
+      patientEmail,
+      patientPhone,
+      appointmentDate,
+      diseaseDetails,
+      consultationFee,
+      currency,
+      cashOnAppointmentDay,
+      appliedAt,
+      isAppointmentConfirmed = false,
+    } = body;
 
-    // Validate that all fields are provided
+    // checking required fields
     if (
       !doctorId ||
       !doctorName ||
       !doctorEmail ||
-      !userId ||
-      !userName ||
-      !userEmail ||
+      !applicantUserId ||
+      !applicantUserName ||
+      !applicantUserEmail ||
       !patientName ||
-      !phone ||
-      !reason ||
-      !date ||
-      !time
+      !patientPhone ||
+      !appointmentDate ||
+      !consultationFee ||
+      cashOnAppointmentDay === undefined
     ) {
       return NextResponse.json(
-        { message: "All fields are required." },
-        { status: 400 }
+        { message: "Required fields are missing" },
+        { status: 400 },
       );
     }
 
-    // Check if there's already an appointment for the same doctor, user, date, and time.
-    const existingAppointment = await Appointment.findOne({
+    // Optional: duplicate চেক (যদি একই দিনে একই পেশেন্ট একই ডাক্তারের সাথে বুক করতে না পারে)
+    const existing = await Appointment.findOne({
       doctorId,
-      userId,
-      date,
-      time,
+      patientPhone,
+      appointmentDate,
+      // status: { $ne: "cancelled" }   // ← cancelled হলে আবার বুক করতে দিতে চাইলে এটা বাদ দাও
     });
 
-    if (existingAppointment) {
+    if (existing) {
       return NextResponse.json(
-        { message: "You have already applied for an appointment with this doctor at the specified date and time." },
-        { status: 409 }
+        {
+          message:
+            "An appointment already exists for this patient with the same doctor on the selected date.",
+        },
+        { status: 409 },
       );
     }
 
+    // নতুন অ্যাপয়েন্টমেন্ট তৈরি
     const newAppointment = new Appointment({
       doctorId,
       doctorName,
       doctorEmail,
-      userId,
-      userName,
-      userEmail,
+      applicantUserId,
+      applicantName: applicantUserName, // স্কিমায় applicantName
+      applicantEmail: applicantUserEmail,
       patientName,
-      phone,
-      reason,
-      date,
-      time,
-      isAppointed: false,
+      patientAge: patientAge ? Number(patientAge) : undefined,
+      patientGender,
+      patientEmail,
+      patientPhone,
+      appointmentDate,
+      diseaseDetails,
+      consultationFee: Number(consultationFee),
+      currency: currency || "BDT",
+      cashOnAppointmentDay: Boolean(cashOnAppointmentDay),
+      appliedAt: appliedAt ? new Date(appliedAt) : new Date(),
+      isAppointmentConfirmed: Boolean(isAppointmentConfirmed),
+      status: isAppointmentConfirmed ? "confirmed" : "pending",
     });
 
-    // Log the data that is about to be saved
-    console.log("Appointment data to be saved:", newAppointment);
+    console.log("Saving appointment:", newAppointment.toObject());
 
     await newAppointment.save();
 
     return NextResponse.json(
-      { message: "Appointment created successfully" },
-      { status: 201 }
+      {
+        message: "Appointment booked successfully",
+        appointmentId: newAppointment._id,
+      },
+      { status: 201 },
     );
   } catch (error) {
-    console.error("Appointment creation error:", error);
+    console.error("Error creating appointment:", error);
     return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-export async function PUT(req) {
-  await dbConnect();
-
-  try {
-    const { appointmentId, updates } = await req.json();
-
-    if (!appointmentId || !updates || typeof updates !== "object") {
-      return NextResponse.json(
-        { message: "Appointment ID and updates are required." },
-        { status: 400 }
-      );
-    }
-
-    const updatedAppointment = await Appointment.findByIdAndUpdate(
-      appointmentId,
-      { $set: updates },
-      { new: true } // Return the updated document
-    );
-
-    if (!updatedAppointment) {
-      return NextResponse.json(
-        { message: "Appointment not found." },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      message: "Appointment updated successfully.",
-      appointment: updatedAppointment,
-    });
-  } catch (error) {
-    console.error("Appointment update error:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
+      { message: "Failed to book appointment", error: error.message },
+      { status: 500 },
     );
   }
 }
