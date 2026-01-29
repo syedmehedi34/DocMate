@@ -80,6 +80,7 @@ const Bookings = ({ doctor, currency }) => {
     }
 
     setIsSubmitting(true);
+    // console.log(form);
 
     const submissionData = {
       patientName: form.name.trim(),
