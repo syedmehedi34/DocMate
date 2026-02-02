@@ -1,4 +1,4 @@
-# Project Name: DocMate [Live Link](https://doc-mate-two.vercel.app)
+# Project Name: DocMate [Live Link](doc-mate-service.vercel.app)
 
 ## Short Description of DocMate
 
