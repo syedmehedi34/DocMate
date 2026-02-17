@@ -87,6 +87,7 @@ npm install
 # or
 yarn install
 
+
 🔐 Step 4: Configure Environment Variables
 Create a .env.local file in the root directory and add the following:
 
