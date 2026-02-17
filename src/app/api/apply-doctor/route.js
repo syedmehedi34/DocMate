@@ -54,7 +54,7 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (error) {
-    console.error("Error applying to be a doctor:", error);
+    // console.error("Error applying to be a doctor:", error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
