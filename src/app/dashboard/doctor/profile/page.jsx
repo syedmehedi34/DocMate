@@ -384,24 +384,29 @@ const DoctorProfileDashboard = () => {
           <div className="space-y-6">
             <ProfileSection title="Practice Details">
               {/* Consultation Fee */}
-              <InfoRow
-                icon={<DollarSign size={17} />}
-                label="Consultation Fee"
-                value={
-                  editMode ? (
-                    <input
-                      type="number"
-                      value={doctor.consultationFee}
-                      onChange={(e) =>
-                        handleChange("consultationFee", Number(e.target.value))
-                      }
-                      className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-teal-500"
-                    />
-                  ) : (
-                    `৳ ${doctor.consultationFee}`
-                  )
-                }
-              />
+              <div className="border rounded mb-5 bg-[#F0FDFA] border-teal-200 font-bold">
+                <InfoRow
+                  icon={<DollarSign size={17} />}
+                  label="Consultation Fee"
+                  value={
+                    editMode ? (
+                      <input
+                        type="number"
+                        value={doctor.consultationFee}
+                        onChange={(e) =>
+                          handleChange(
+                            "consultationFee",
+                            Number(e.target.value),
+                          )
+                        }
+                        className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-teal-500"
+                      />
+                    ) : (
+                      `৳ ${doctor.consultationFee}`
+                    )
+                  }
+                />
+              </div>
 
               {/* Chamber Hours */}
               <div className="flex flex-col">

@@ -4,11 +4,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "i.ibb.co",
-        // port: "",           // optional, default empty
-        // pathname: "/**",    // optional, সব path allow করতে (default /**)
+        hostname: "i.ibb.co.com",
+        // port: "",
+        // pathname: "/**",
       },
-      // যদি আরও কোনো domain থাকে (যেমন Google profile pic বা অন্য CDN) তাহলে যোগ করো
+      // add more remote patterns as needed
       // {
       //   protocol: "https",
       //   hostname: "lh3.googleusercontent.com",
