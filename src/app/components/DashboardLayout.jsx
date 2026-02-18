@@ -1,18 +1,14 @@
 // src/app/DashboardLayout.jsx  (or app/(dashboard)/layout.jsx etc.)
 "use client";
-
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
-// import Sidebar from "@/components/dashboard/Sidebar";
-// import Topbar from "@/components/dashboard/Topbar";
 
 export default function DashboardLayout({ children }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -44,18 +40,19 @@ export default function DashboardLayout({ children }) {
         <Sidebar onCollapseChange={setIsCollapsed} />
       </aside>
 
-      {/* Topbar – uses left instead of ml- */}
+      {/* Topbar – now using ml like main content → smooth! */}
       <header
         className={`
-          fixed top-0 z-20 bg-white border-b border-gray-200 shadow-sm
-          transition-all duration-300 ease-in-out
-          ${isCollapsed ? "left-16" : "left-64"} right-0
-        `}
+    fixed top-0 z-20 bg-white border-b border-gray-200
+    transition-all duration-300 ease-in-out
+    ${isCollapsed ? "left-16" : "left-64"} 
+    right-0
+  `}
       >
         <Topbar />
       </header>
 
-      {/* Main content */}
+      {/* Main content – already good */}
       <div
         className={`
           transition-all duration-300 ease-in-out
