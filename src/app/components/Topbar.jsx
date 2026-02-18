@@ -6,28 +6,31 @@ import { useSession, signOut } from "next-auth/react";
 export default function Topbar() {
   const { data: session } = useSession();
 
+  const role = session?.user?.role;
+  const displayRole = role
+    ? role.charAt(0).toUpperCase() + role.slice(1)
+    : "Dashboard";
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-full mx-auto px-6 py-3 flex items-center justify-between">
-        <div className="text-lg font-semibold text-gray-800">
-          {session?.user?.role
-            ? `${session.user.role.charAt(0).toUpperCase() + session.user.role.slice(1)} Dashboard`
-            : "Dashboard"}
+    <div className="h-16 flex items-center justify-between px-6 bg-white border-b border-gray-200 shadow-sm">
+      <div className="text-lg font-semibold text-gray-800">{displayRole}</div>
+
+      <div className="flex items-center gap-6">
+        <div className="text-sm text-gray-700 font-medium">
+          {session?.user?.name || "User"}
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600">
-            {session?.user?.name || "User"}
-          </div>
-
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-sm text-red-600 hover:text-red-800 font-medium"
-          >
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="
+            px-4 py-1.5 text-sm font-medium text-red-600 
+            hover:text-red-700 hover:bg-red-50 
+            rounded-md transition-all duration-200
+          "
+        >
+          Logout
+        </button>
       </div>
-    </header>
+    </div>
   );
 }
