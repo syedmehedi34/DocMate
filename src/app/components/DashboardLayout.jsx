@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="relative min-h-screen bg-gray-50">
-      {/* Fixed Sidebar */}
+      {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 overflow-y-auto">
         <Sidebar />
       </aside>
