@@ -18,7 +18,9 @@ const DoctorAppointmentsPage = () => {
       const doctorId = session?.user?.id;
       if (!doctorId) throw new Error("Doctor ID not found in session");
 
-      const res = await fetch(`/api/pending-appointments?doctorId=${doctorId}`);
+      const res = await fetch(
+        `/api/appointments/pending-appointments?doctorId=${doctorId}`,
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
@@ -40,13 +42,13 @@ const DoctorAppointmentsPage = () => {
   // handle approve or reject
   const handleDecision = async (appointmentId, approved) => {
     try {
-      const res = await fetch("/api/appointments/decision", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appointmentId, approved }),
-      });
+      const status = approved ? "confirmed" : "rejected";
 
-      const result = await res.json();
+      const res = await fetch(`/api/appointments/${appointmentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
 
       if (res.ok) {
         alert(
@@ -54,7 +56,8 @@ const DoctorAppointmentsPage = () => {
         );
         fetchPendingAppointments();
       } else {
-        alert(result.message || "Failed to update status.");
+        const err = await res.json();
+        alert(err.error || "Failed to update status.");
       }
     } catch (error) {
       console.error("Decision error:", error);
@@ -206,3 +209,26 @@ const DoctorAppointmentsPage = () => {
 };
 
 export default DoctorAppointmentsPage;
+
+//
+// const handleCancel = async (appointmentId) => {
+//   if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
+
+//   try {
+//     const res = await fetch(`/api/appointments/${appointmentId}`, {
+//       method: "PATCH",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ status: "cancelled" }),
+//     });
+
+//     if (res.ok) {
+//       alert("Appointment cancelled successfully.");
+//       // refresh or redirect
+//     } else {
+//       const err = await res.json();
+//       alert(err.error || "Failed to cancel.");
+//     }
+//   } catch (err) {
+//     alert("Network error. Please try again.");
+//   }
+// };

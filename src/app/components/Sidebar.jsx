@@ -74,7 +74,7 @@ export default function Sidebar({ onCollapseChange }) {
       },
       {
         name: "Pending Appointments",
-        href: "/dashboard/doctor/appointments",
+        href: "/dashboard/doctor/pending-appointments",
         icon: CalendarIcon,
       },
     ],
