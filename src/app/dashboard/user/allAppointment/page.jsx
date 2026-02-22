@@ -7,8 +7,8 @@ import RoleGuard from "@/app/components/RoleGuard";
 const AllAppointmentsPage = () => {
   const { data: session } = useSession();
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true); // ← added
-  const [error, setError] = useState(null); // optional but recommended
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const fetchAppointments = async () => {
@@ -35,8 +35,9 @@ const AllAppointmentsPage = () => {
   };
 
   const handleCancelAppointment = async (appointmentId) => {
-    if (!window.confirm("Are you sure you want to cancel this appointment?"))
+    if (!window.confirm("Are you sure you want to cancel this appointment?")) {
       return;
+    }
 
     try {
       const res = await fetch(`/api/appointments/cancel`, {
@@ -67,8 +68,21 @@ const AllAppointmentsPage = () => {
     }
   }, [session]);
 
-  const openDetails = (appt) => setSelectedAppointment(appt);
-  const closeDetails = () => setSelectedAppointment(null);
+  const openModal = (appt) => {
+    setSelectedAppointment(appt);
+    // DaisyUI modal open
+    document.getElementById("appointment_modal")?.showModal();
+  };
+
+  const closeAndCancel = () => {
+    if (
+      selectedAppointment?.status === "pending" &&
+      !selectedAppointment?.isAppointmentConfirmed
+    ) {
+      handleCancelAppointment(selectedAppointment._id);
+    }
+    // Modal will close automatically via form method="dialog"
+  };
 
   return (
     <RoleGuard allowedRoles={["user"]}>
@@ -144,23 +158,23 @@ const AllAppointmentsPage = () => {
                         {appt.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right text-sm space-x-2">
+                    <td className="px-4 py-4 text-right text-sm space-x-3">
                       <button
-                        onClick={() => openDetails(appt)}
+                        onClick={() => openModal(appt)}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
                         View Details
                       </button>
 
-                      {appt.status === "pending" &&
+                      {/* {appt.status === "pending" &&
                         !appt.isAppointmentConfirmed && (
                           <button
                             onClick={() => handleCancelAppointment(appt._id)}
-                            className="text-red-600 hover:text-red-800 font-medium ml-3"
+                            className="text-red-600 hover:text-red-800 font-medium"
                           >
                             Cancel
                           </button>
-                        )}
+                        )} */}
                     </td>
                   </tr>
                 ))}
@@ -169,35 +183,169 @@ const AllAppointmentsPage = () => {
           </div>
         )}
 
-        {/* Modal - remains unchanged */}
-        {selectedAppointment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Appointment Details</h2>
-                  <button
-                    onClick={closeDetails}
-                    className="text-gray-500 hover:text-gray-800 text-2xl"
-                  >
-                    ×
-                  </button>
+        {/* ────────────────────────────────────────────────
+            Modal Section
+        ──────────────────────────────────────────────── */}
+        <dialog id="appointment_modal" className="modal">
+          <div className="modal-box max-w-2xl w-11/12">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b pb-4 mb-6">
+              <h3 className="font-bold text-xl md:text-2xl">
+                Appointment Details
+              </h3>
+              <form method="dialog">
+                <button className="btn btn-sm btn-circle btn-ghost">✕</button>
+              </form>
+            </div>
+
+            {/* Content */}
+            {selectedAppointment && (
+              <div className="space-y-6">
+                {/* Main info grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Doctor</div>
+                    <div className="font-medium text-lg">
+                      {selectedAppointment.doctorName}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {selectedAppointment.doctorEmail}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Date</div>
+                    <div className="font-medium text-lg">
+                      {selectedAppointment.appointmentDate}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Patient</div>
+                    <div className="font-medium text-lg">
+                      {selectedAppointment.patientName} •{" "}
+                      {selectedAppointment.patientAge} yrs •{" "}
+                      {selectedAppointment.patientGender}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Status</div>
+                    <div
+                      className={`badge badge-lg ${
+                        selectedAppointment.status === "pending"
+                          ? "badge-warning"
+                          : selectedAppointment.status === "confirmed"
+                            ? "badge-success"
+                            : selectedAppointment.status === "cancelled"
+                              ? "badge-error"
+                              : "badge-neutral"
+                      }`}
+                    >
+                      {selectedAppointment.status.charAt(0).toUpperCase() +
+                        selectedAppointment.status.slice(1)}
+                    </div>
+                  </div>
                 </div>
 
-                {/* ... rest of modal content same as before ... */}
+                <div className="divider"></div>
 
-                <div className="mt-8 flex justify-end">
-                  <button
-                    onClick={closeDetails}
-                    className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                  >
-                    Close
-                  </button>
+                {/* Details */}
+                <div className="space-y-5">
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">
+                      Disease / Reason
+                    </div>
+                    <p className="whitespace-pre-line">
+                      {selectedAppointment.diseaseDetails || "Not specified"}
+                    </p>
+                  </div>
+
+                  {selectedAppointment.doctorNotes && (
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                        Doctor Notes
+                      </div>
+                      <p className="whitespace-pre-line italic opacity-90">
+                        {selectedAppointment.doctorNotes}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedAppointment.adminNotes && (
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                        Admin Notes
+                      </div>
+                      <p className="whitespace-pre-line">
+                        {selectedAppointment.adminNotes}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-3">
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                        Consultation Fee
+                      </div>
+                      <div className="text-xl font-semibold">
+                        {selectedAppointment.currency}
+                        {selectedAppointment.consultationFee}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">
+                        Payment Method
+                      </div>
+                      <div className="text-base">
+                        {selectedAppointment.cashOnAppointmentDay
+                          ? "Cash on appointment day"
+                          : "Already paid"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-gray-500 pt-2">
+                    Applied:{" "}
+                    {new Date(selectedAppointment.appliedAt).toLocaleString(
+                      "en-US",
+                      {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      },
+                    )}
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Actions */}
+            <div className="modal-action mt-8">
+              <form method="dialog">
+                <button className="btn btn-outline">Close</button>
+              </form>
+
+              {selectedAppointment?.status === "pending" &&
+                !selectedAppointment?.isAppointmentConfirmed && (
+                  <button
+                    className="btn btn-error"
+                    onClick={() => {
+                      handleCancelAppointment(selectedAppointment._id);
+                      document.getElementById("appointment_modal")?.close();
+                    }}
+                  >
+                    Cancel Appointment
+                  </button>
+                )}
             </div>
           </div>
-        )}
+
+          {/* Click outside closes modal */}
+          <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
       </div>
     </RoleGuard>
   );
