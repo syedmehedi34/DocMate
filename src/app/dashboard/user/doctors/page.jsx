@@ -225,14 +225,14 @@ const DoctorPage = () => {
     <RoleGuard allowedRoles={["user"]}>
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-10">
+          <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
               Our Specialists
             </h1>
           </div>
 
           {/* Search + Sort Controls */}
-          <div className="mb-8 flex flex-col justify-between sm:flex-row gap-4">
+          <div className="mb-6 flex flex-col justify-between sm:flex-row gap-4">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md text-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
