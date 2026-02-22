@@ -1,59 +1,94 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import dbConnect from "../../../../../lib/mongodb";
 import Appointment from "../../../../../models/Appointment";
 import User from "../../../../../models/User";
 
-export async function GET(req) {
-  await dbConnect();
-
+export async function GET() {
   try {
-    const doctorId = req.nextUrl.searchParams.get("doctorId");
+    await dbConnect();
 
-    if (!doctorId) {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // access only for doctors
+    if (session.user.role !== "doctor") {
       return NextResponse.json(
-        { message: "Doctor ID is required." },
-        { status: 400 },
+        { error: "Only doctors can view their patients" },
+        { status: 403 },
       );
     }
 
-    // Step 1: Find all approved appointments for this doctor
+    // doctorId taken from session
+    const doctorId = session.user.id;
+
+    // Step 1: doctor-এর confirmed/completed appointments নেওয়া
     const appointments = await Appointment.find({
-      doctorId,
-      status: "confirmed",
+      doctorId: doctorId,
+      $or: [
+        { status: "confirmed" },
+        { status: "completed" }, //
+      ],
+    })
+      .select(
+        "applicantUserId userId patientName patientPhone diseaseDetails reason appointmentDate",
+      )
+      .sort({ appointmentDate: -1 }) // newest first
+      .lean();
+
+    if (appointments.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
+    // Step 2: Unique patient IDs
+    const patientIds = new Set();
+
+    appointments.forEach((appt) => {
+      const pid = appt.applicantUserId || appt.userId;
+      if (pid) {
+        patientIds.add(pid.toString());
+      }
     });
 
-    // Step 2: Extract unique userIds
-    const userIds = [
-      ...new Set(appointments.map((app) => app.applicantUserId.toString())),
-    ];
+    if (patientIds.size === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
 
-    // Step 3: Fetch patient data
-    const users = await User.find({
-      _id: { $in: userIds },
-      // role: "user",
-    }).lean();
+    // Step 3: Unique patients-এর details নেওয়া
+    const patients = await User.find({
+      _id: { $in: Array.from(patientIds) },
+    })
+      .select("name email phone age gender profilePicture")
+      .lean();
 
-    // Step 4: Attach appointment info to each user
-    const enrichedPatients = users.map((user) => {
-      const patientAppointments = appointments.filter(
-        (app) => app.userId.toString() === user._id.toString(),
+    // Step 4: প্রত্যেক patient-এর সাথে latest appointment info যোগ করা
+    const enrichedPatients = patients.map((patient) => {
+      const patientAppts = appointments.filter(
+        (appt) =>
+          (appt.applicantUserId || appt.userId)?.toString() ===
+          patient._id.toString(),
       );
 
-      const { phone, patientName, reason } = patientAppointments[0] || {}; // Get info from first appointment
+      // সবচেয়ে নতুন appointment
+      const latestAppt = patientAppts[0]; // যেহেতু sort(-1) করা আছে
 
       return {
-        ...user,
-        phone,
-        patientName,
-        reason,
+        ...patient,
+        phone: latestAppt?.patientPhone || patient.phone || "N/A",
+        patientName: latestAppt?.patientName || patient.name || "—",
+        reason: latestAppt?.diseaseDetails || latestAppt?.reason || "—",
+        lastAppointmentDate: latestAppt?.appointmentDate || "—",
+        appointmentCount: patientAppts.length,
       };
     });
 
     return NextResponse.json(enrichedPatients);
   } catch (error) {
-    console.error("Error fetching doctor patients:", error);
+    console.error("GET /api/doctor/patients error:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: "Internal server error", details: error.message },
       { status: 500 },
     );
   }

@@ -18,30 +18,20 @@ const DoctorPatientsPage = () => {
   const fetchDoctorPatients = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const res = await fetch(
-        `/api/doctor/patients?doctorId=${session?.user?.id}`,
-      );
+      const res = await fetch("/api/doctor/patients");
 
       if (!res.ok) {
-        throw new Error(`Server responded with ${res.status}`);
+        const errData = await res.json();
+        throw new Error(errData.error || `HTTP ${res.status}`);
       }
 
       const data = await res.json();
-
-      // Normalize
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.patients)
-          ? data.patients
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
-
-      setPatients(list);
+      setPatients(data || []);
     } catch (err) {
       console.error("Failed to load patients:", err);
-      setError("Could not load patient list. Please try again later.");
+      setError(err.message || "Could not load patient list.");
       setPatients([]);
     } finally {
       setLoading(false);
