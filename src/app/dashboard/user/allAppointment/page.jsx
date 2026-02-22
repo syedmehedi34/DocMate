@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import RoleGuard from "@/app/components/RoleGuard";
+import { Ban, CheckCircle, CheckSquare, Clock, XCircle } from "lucide-react";
 
 const AllAppointmentsPage = () => {
   const { data: session } = useSession();
@@ -11,6 +12,7 @@ const AllAppointmentsPage = () => {
   const [error, setError] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
+  // fetch all appointments for the logged-in user
   const fetchAppointments = async () => {
     if (!session?.user?.id) return;
 
@@ -34,6 +36,7 @@ const AllAppointmentsPage = () => {
     }
   };
 
+  // cancel appointment handler (//! need to update UI - toaster and alert)
   const handleCancelAppointment = async (appointmentId) => {
     if (!window.confirm("Are you sure you want to cancel this appointment?")) {
       return;
@@ -70,18 +73,7 @@ const AllAppointmentsPage = () => {
 
   const openModal = (appt) => {
     setSelectedAppointment(appt);
-    // DaisyUI modal open
     document.getElementById("appointment_modal")?.showModal();
-  };
-
-  const closeAndCancel = () => {
-    if (
-      selectedAppointment?.status === "pending" &&
-      !selectedAppointment?.isAppointmentConfirmed
-    ) {
-      handleCancelAppointment(selectedAppointment._id);
-    }
-    // Modal will close automatically via form method="dialog"
   };
 
   return (
@@ -145,17 +137,32 @@ const AllAppointmentsPage = () => {
                     </td>
                     <td className="px-3 py-4 text-center">
                       <span
-                        className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full ${
-                          appt.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : appt.status === "confirmed"
-                              ? "bg-green-100 text-green-800"
-                              : appt.status === "cancelled"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
-                        }`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-medium rounded-full border border-opacity-30 uppercase tracking-wide
+    ${
+      appt.status === "pending"
+        ? "bg-yellow-100 text-yellow-800 border-yellow-400"
+        : appt.status === "confirmed"
+          ? "bg-green-100 text-green-800 border-green-400"
+          : appt.status === "rejected"
+            ? "bg-red-100 text-red-800 border-red-400"
+            : appt.status === "cancelled"
+              ? "bg-gray-200 text-gray-800 border-gray-400"
+              : appt.status === "completed"
+                ? "bg-blue-100 text-blue-800 border-blue-400"
+                : "bg-gray-100 text-gray-600 border-gray-300"
+    }`}
                       >
-                        {appt.status}
+                        {appt.status === "pending" && <Clock size={12} />}
+                        {appt.status === "confirmed" && (
+                          <CheckCircle size={12} />
+                        )}
+                        {appt.status === "rejected" && <XCircle size={12} />}
+                        {appt.status === "cancelled" && <Ban size={12} />}
+                        {appt.status === "completed" && (
+                          <CheckSquare size={12} />
+                        )}
+                        {appt.status.charAt(0).toUpperCase() +
+                          appt.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-right text-sm space-x-3">
