@@ -10,7 +10,9 @@ export async function GET(req, { params }) {
     const { userId } = await params;
 
     // Fetch all appointments for the user
-    const appointments = await Appointment.find({ userId }).sort({
+    const appointments = await Appointment.find({
+      applicantUserId: userId,
+    }).sort({
       createdAt: -1,
     });
 
