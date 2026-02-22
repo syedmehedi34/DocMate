@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 
 export async function GET(req) {
   try {
-    // Connect to MongoDB
     await dbConnect();
 
     // Fetch users (only normal users, excluding doctors and admins)

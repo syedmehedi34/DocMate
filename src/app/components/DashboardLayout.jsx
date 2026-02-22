@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }) {
 
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen ">
         <p className="text-lg font-semibold text-gray-700">Loading...</p>
       </div>
     );

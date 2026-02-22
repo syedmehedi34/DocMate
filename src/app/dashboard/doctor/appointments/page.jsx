@@ -5,18 +5,30 @@ import RoleGuard from "@/app/components/RoleGuard";
 
 const DoctorAppointmentsPage = () => {
   const { data: session } = useSession();
-  const [patientData, setPatientData] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch patients with their appointments
-  const fetchPatientsWithAppointments = async () => {
+  const fetchPendingAppointments = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch("/api/users-and-appointments");
+      const doctorId = session?.user?.id;
+      if (!doctorId) {
+        throw new Error("Doctor ID not found in session");
+      }
+
+      const res = await fetch(`/api/pending-appointments?doctorId=${doctorId}`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+      }
+
       const data = await res.json();
-      setPatientData(data);
-    } catch (error) {
-      console.error("Error fetching patient appointments:", error);
+      setAppointments(data || []);
+    } catch (err) {
+      console.error("Fetch appointments error:", err);
+      setError("Failed to load appointments. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -24,22 +36,10 @@ const DoctorAppointmentsPage = () => {
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchPatientsWithAppointments();
+      fetchPendingAppointments();
     }
   }, [session]);
 
-  // Extract appointments for which the logged-in doctor is assigned
-  const doctorAppointments = patientData.flatMap((user) =>
-    (user.appointments || [])
-      .filter((app) => app.doctorId === session?.user?.id)
-      .map((app) => ({
-        ...app,
-        patientName: user.name,
-        patientEmail: user.email,
-      }))
-  );
-
-  // Handle appointment decision: Approve or Reject
   const handleDecision = async (appointmentId, approved) => {
     try {
       const res = await fetch("/api/appointments/decision", {
@@ -47,70 +47,84 @@ const DoctorAppointmentsPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ appointmentId, approved }),
       });
+
       const result = await res.json();
+
       if (res.ok) {
-        alert("Appointment updated successfully.");
-        fetchPatientsWithAppointments();
+        alert(
+          "Appointment " +
+            (approved ? "approved" : "rejected") +
+            " successfully.",
+        );
+        fetchPendingAppointments(); // refresh list
       } else {
-        alert(result.message || "Failed to update appointment.");
+        alert(result.message || "Failed to update appointment status.");
       }
     } catch (error) {
       console.error("Error updating appointment:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 
-  if (loading) return <div>Loading appointments...</div>;
+  if (loading) {
+    return <div className="p-4">Loading appointments...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-600">{error}</div>;
+  }
 
   return (
     <RoleGuard allowedRoles={["doctor"]}>
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">My Appointments</h2>
-      {doctorAppointments.length === 0 ? (
-        <p>No appointment requests found.</p>
-      ) : (
-        <table className="table w-full border">
-          <thead className="bg-gray-200">
-            <tr>
-              <th>Patient Name</th>
-              <th>Patient Email</th>
-              <th>Phone</th>
-              <th>Reason</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doctorAppointments.map((appointment) => (
-              <tr key={appointment._id}>
-                <td>{appointment.patientName}</td>
-                <td>{appointment.patientEmail}</td>
-                <td>{appointment.phone}</td>
-                <td>{appointment.reason}</td>
-                <td>{appointment.date}</td>
-                <td>{appointment.time}</td>
-                <td>{appointment.isAppointed ? "Approved" : "Pending"}</td>
-                <td>
-                  <button
-                    className="btn btn-success mr-2"
-                    onClick={() => handleDecision(appointment._id, true)}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    className="btn btn-error"
-                    onClick={() => handleDecision(appointment._id, false)}
-                  >
-                    Reject
-                  </button>
-                </td>
+      <div className="p-4">
+        <h2 className="text-2xl font-bold mb-4">My Appointments</h2>
+
+        {appointments.length === 0 ? (
+          <p>No pending appointment requests found.</p>
+        ) : (
+          <table className="table w-full border">
+            <thead className="bg-gray-200">
+              <tr>
+                <th>Patient Name</th>
+                <th>Patient Email</th>
+                <th>Phone</th>
+                <th>Reason</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+            </thead>
+            <tbody>
+              {appointments.map((appt) => (
+                <tr key={appt._id}>
+                  <td>{appt.patientName}</td>
+                  <td>{appt.patientEmail}</td>
+                  <td>{appt.patientPhone}</td>
+                  <td>{appt.diseaseDetails}</td>
+                  <td>{appt.appointmentDate}</td>
+                  <td>{appt.time || "—"}</td>
+                  <td>Pending</td>
+                  <td>
+                    <button
+                      className="btn btn-success mr-2"
+                      onClick={() => handleDecision(appt._id, true)}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="btn btn-error"
+                      onClick={() => handleDecision(appt._id, false)}
+                    >
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </RoleGuard>
   );
 };

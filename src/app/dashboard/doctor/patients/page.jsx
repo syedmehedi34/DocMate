@@ -7,6 +7,7 @@ const DoctorPatientsPage = () => {
   const { data: session } = useSession();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -16,52 +17,96 @@ const DoctorPatientsPage = () => {
 
   const fetchDoctorPatients = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/doctor/patients?doctorId=${session?.user?.id}`);
+      const res = await fetch(
+        `/api/doctor/patients?doctorId=${session?.user?.id}`,
+      );
+
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+
       const data = await res.json();
-      console.log(data);
-      setPatients(data); // ✅ use directly
-    } catch (error) {
-      console.error("Error fetching patients:", error);
+
+      // Normalize
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.patients)
+          ? data.patients
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+      setPatients(list);
+    } catch (err) {
+      console.error("Failed to load patients:", err);
+      setError("Could not load patient list. Please try again later.");
+      setPatients([]);
     } finally {
       setLoading(false);
     }
   };
-  
 
-  if (loading) return <div>Loading patients...</div>;
+  if (loading) return <div className="p-6">Loading patients...</div>;
+
+  if (error) {
+    return (
+      <div className="p-6 text-red-600">
+        {error}
+        <button
+          onClick={fetchDoctorPatients}
+          className="ml-4 btn btn-sm btn-outline"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <RoleGuard allowedRoles={["doctor"]}>
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">My Patients</h2>
-      {patients.length === 0 ? (
-        <p>No patients found.</p>
-      ) : (
-        <table className="table w-full border">
-          <thead className="bg-gray-200">
-            <tr>
-              <th>#</th>
-              <th>Patient Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Disease details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.map((patient, index) => (
-              <tr key={patient._id}>
-                <td>{index + 1}</td>
-                <td>{patient.patientName}</td>
-                <td>{patient.email}</td>
-                <td>{patient.phone || "N/A"}</td>
-                <td>{patient.reason || "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-6">My Patients</h2>
+
+        {patients.length === 0 ? (
+          <div className="alert alert-info">
+            <span>No patients have booked appointments with you yet.</span>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Patient Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Disease / Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {patients.map((patient, index) => (
+                  <tr key={patient._id || index}>
+                    <td>{index + 1}</td>
+                    <td className="font-medium">
+                      {patient.patientName || "—"}
+                    </td>
+                    <td>{patient.patientEmail || patient.email || "—"}</td>
+                    <td>{patient.patientPhone || patient.phone || "N/A"}</td>
+                    <td>
+                      {patient.diseaseDetails ||
+                        patient.reason ||
+                        patient.disease ||
+                        "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </RoleGuard>
   );
 };
