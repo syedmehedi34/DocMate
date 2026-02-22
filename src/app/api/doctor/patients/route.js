@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import dbConnect from "../../../../../lib/mongodb";
 import Appointment from "../../../../../models/Appointment";
 import User from "../../../../../models/User";
+import { auth } from "@/auth";
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // access only for doctors
+    // doctor access only
     if (session.user.role !== "doctor") {
       return NextResponse.json(
         { error: "Only doctors can view their patients" },
@@ -21,66 +21,72 @@ export async function GET() {
       );
     }
 
-    // doctorId taken from session
     const doctorId = session.user.id;
 
-    // Step 1: doctor-এর confirmed/completed appointments নেওয়া
+    // Step 1: find confirmed/completed appointment
     const appointments = await Appointment.find({
       doctorId: doctorId,
-      $or: [
-        { status: "confirmed" },
-        { status: "completed" }, //
-      ],
+      $or: [{ status: "confirmed" }, { status: "completed" }],
     })
       .select(
-        "applicantUserId userId patientName patientPhone diseaseDetails reason appointmentDate",
+        "applicantUserId userId applicantName applicantEmail patientName patientAge patientGender patientPhone appointmentDate diseaseDetails adminNotes doctorNotes",
       )
-      .sort({ appointmentDate: -1 }) // newest first
+      .sort({ appointmentDate: -1 }) // sort by latest appointment first
       .lean();
 
     if (appointments.length === 0) {
       return NextResponse.json([], { status: 200 });
     }
 
-    // Step 2: Unique patient IDs
+    // Step 2: find unique patient IDs
     const patientIds = new Set();
-
     appointments.forEach((appt) => {
       const pid = appt.applicantUserId || appt.userId;
-      if (pid) {
-        patientIds.add(pid.toString());
-      }
+      if (pid) patientIds.add(pid.toString());
     });
 
     if (patientIds.size === 0) {
       return NextResponse.json([], { status: 200 });
     }
 
-    // Step 3: Unique patients-এর details নেওয়া
+    // Step 3: collect patient details from User collection
     const patients = await User.find({
       _id: { $in: Array.from(patientIds) },
     })
       .select("name email phone age gender profilePicture")
       .lean();
 
-    // Step 4: প্রত্যেক patient-এর সাথে latest appointment info যোগ করা
+    // Step 4: enrich patient data with their latest appointment info and all appointment dates
     const enrichedPatients = patients.map((patient) => {
-      const patientAppts = appointments.filter(
+      const patientAppointments = appointments.filter(
         (appt) =>
           (appt.applicantUserId || appt.userId)?.toString() ===
           patient._id.toString(),
       );
 
-      // সবচেয়ে নতুন appointment
-      const latestAppt = patientAppts[0]; // যেহেতু sort(-1) করা আছে
+      // all appointment dates in a single array
+      const allAppointmentDates = patientAppointments
+        .map((a) => a.appointmentDate)
+        .filter(Boolean);
+
+      // latest appointment date
+      const latestAppt = patientAppointments[0];
 
       return {
-        ...patient,
-        phone: latestAppt?.patientPhone || patient.phone || "N/A",
+        _id: patient._id.toString(),
+        applicantUserId: latestAppt?.applicantUserId?.toString() || null,
+        applicantName: latestAppt?.applicantName || patient.name || "—",
+        applicantEmail: latestAppt?.applicantEmail || patient.email || "—",
         patientName: latestAppt?.patientName || patient.name || "—",
-        reason: latestAppt?.diseaseDetails || latestAppt?.reason || "—",
+        patientAge: latestAppt?.patientAge || patient.age || null,
+        patientGender: latestAppt?.patientGender || patient.gender || "—",
+        patientPhone: latestAppt?.patientPhone || patient.phone || "N/A",
+        appointmentDate: allAppointmentDates, // array of all dates
         lastAppointmentDate: latestAppt?.appointmentDate || "—",
-        appointmentCount: patientAppts.length,
+        diseaseDetails: latestAppt?.diseaseDetails || "—",
+        adminNotes: latestAppt?.adminNotes || "—",
+        doctorNotes: latestAppt?.doctorNotes || "—",
+        appointmentCount: patientAppointments.length,
       };
     });
 
