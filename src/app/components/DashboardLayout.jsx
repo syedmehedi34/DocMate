@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }) {
       {/* Main content – already good */}
       <div
         className={`
-          transition-all duration-300 ease-in-out
+          transition-all duration-200 ease-in-out
           ${isCollapsed ? "ml-16" : "ml-64"}
           pt-16 min-h-screen flex flex-col
         `}
