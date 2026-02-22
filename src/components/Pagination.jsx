@@ -11,7 +11,7 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
     data.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, data.length);
 
-  /* 🔹 send current page items to parent */
+  // Send current page items to parent
   useEffect(() => {
     const currentItems = data.slice(
       (currentPage - 1) * itemsPerPage,
@@ -20,7 +20,7 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
     onPageDataChange(currentItems);
   }, [currentPage, data, itemsPerPage]);
 
-  /* 🔹 reset page when data changes */
+  // Reset to page 1 when data changes (e.g. filter applied)
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
@@ -28,23 +28,25 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex justify-between items-center mt-8 flex-wrap gap-2">
-      {/* Left Section: Showing X to Y of Z */}
-      <div className="text-gray-600 text-sm">
-        Showing {startItem} to {endItem} of {data.length} items
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-5 flex-wrap">
+      {/* Showing X to Y of Z */}
+      <div className="text-sm text-gray-600 text-center sm:text-left">
+        Showing <span className="font-semibold">{startItem}</span> to{" "}
+        <span className="font-semibold">{endItem}</span> of{" "}
+        <span className="font-semibold">{data.length}</span> items
       </div>
 
-      {/* Right Section: Pagination Buttons */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Prev */}
+      {/* Pagination Buttons */}
+      <div className="flex items-center gap-2 flex-wrap justify-center">
+        {/* Previous */}
         <button
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
-          className={`px-4 py-2 rounded-lg border font-semibold transition
+          className={`px-4 py-2 rounded-lg border font-medium transition-colors
             ${
               currentPage === 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-white hover:bg-blue-50 text-blue-600"
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                : "bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-200"
             }`}
         >
           Prev
@@ -57,11 +59,11 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`w-10 h-10 rounded-lg font-semibold transition
+              className={`w-10 h-10 rounded-lg font-medium transition-all
                 ${
                   currentPage === page
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-blue-50"
+                    ? "bg-linear-to-r from-indigo-600 to-indigo-700 text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-indigo-50 border border-gray-200"
                 }`}
             >
               {page}
@@ -73,11 +75,11 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
         <button
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className={`px-4 py-2 rounded-lg border font-semibold transition
+          className={`px-4 py-2 rounded-lg border font-medium transition-colors
             ${
               currentPage === totalPages
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-white hover:bg-blue-50 text-blue-600"
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                : "bg-white text-indigo-600 hover:bg-indigo-50 border-indigo-200"
             }`}
         >
           Next

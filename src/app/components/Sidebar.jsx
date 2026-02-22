@@ -103,7 +103,7 @@ export default function Sidebar({ onCollapseChange }) {
     <>
       <aside
         className={`
-          bg-gradient-to-b from-slate-800 to-slate-900 text-white
+          bg-linear-to-b from-slate-800 to-slate-900 text-white
           flex flex-col h-screen border-r border-slate-700
           fixed left-0 top-0 z-30
           transition-all duration-300 ease-in-out

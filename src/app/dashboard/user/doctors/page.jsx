@@ -1,10 +1,13 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import RoleGuard from "@/app/components/RoleGuard";
+import Pagination from "@/components/Pagination";
 
 const DoctorPage = () => {
   const [doctors, setDoctors] = useState([]);
+  const [paginatedDoctors, setPaginatedDoctors] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [appointmentDate, setAppointmentDate] = useState("");
@@ -13,8 +16,8 @@ const DoctorPage = () => {
   const [phone, setPhone] = useState("");
   const [reason, setReason] = useState("");
   const { data: session } = useSession();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+
+  const itemsPerPage = 6;
 
   const handleAppointmentClick = (doctor) => {
     setSelectedDoctor(doctor);
@@ -22,7 +25,14 @@ const DoctorPage = () => {
   };
 
   const handleAppointmentSubmit = async () => {
-    if (!selectedDoctor || !appointmentDate || !appointmentTime || !patientName || !phone || !reason) {
+    if (
+      !selectedDoctor ||
+      !appointmentDate ||
+      !appointmentTime ||
+      !patientName ||
+      !phone ||
+      !reason
+    ) {
       alert("Please fill in all the fields.");
       return;
     }
@@ -77,7 +87,7 @@ const DoctorPage = () => {
       try {
         const res = await fetch("/api/users");
         const data = await res.json();
-        setDoctors(data.filter(user => user.role === "doctor"));
+        setDoctors(data.filter((user) => user.role === "doctor"));
       } catch (error) {
         console.error("Error fetching doctors:", error);
       }
@@ -85,184 +95,221 @@ const DoctorPage = () => {
     fetchDoctors();
   }, []);
 
-  const totalDoctors = doctors.length;
-  const totalPages = Math.ceil(totalDoctors / itemsPerPage);
-  const currentDoctors = doctors.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const handleNextPage = () => currentPage < totalPages && setCurrentPage(prev => prev + 1);
-  const handlePrevPage = () => currentPage > 1 && setCurrentPage(prev => prev - 1);
-  const handlePageClick = pageNumber => setCurrentPage(pageNumber);
-
   return (
     <RoleGuard allowedRoles={["user"]}>
-      <div className="p-6 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Available Doctors</h2>
+      <div className="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-10">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Our Specialists
+            </h1>
+            <p className="mt-3 text-lg text-gray-600">
+              Book consultations with experienced doctors across various
+              specialties
+            </p>
+          </div>
 
-        <div className="overflow-x-auto rounded-lg shadow-md border border-gray-100">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentDoctors.map((doctor) => (
-                <tr key={doctor._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+          {/* Doctors List */}
+          <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+            <div className="divide-y divide-gray-300">
+              {paginatedDoctors.map((doctor) => (
+                <div
+                  key={doctor._id}
+                  className="p-5 sm:p-6 hover:bg-indigo-50/30 transition-colors duration-150"
+                >
+                  <div className="flex flex-col gap-5">
+                    {/* Doctor info - vertical stack on mobile */}
+                    <div className="flex items-start gap-4">
                       <img
-                        className="h-10 w-10 rounded-full object-cover border-2 border-blue-100"
-                        src={doctor.doctorImageUrl || "https://i.ibb.co/33gs5fP/user.png"}
+                        className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200 shrink-0"
+                        src={
+                          doctor.doctorImageUrl ||
+                          "https://i.ibb.co/33gs5fP/user.png"
+                        }
                         alt={doctor.name}
                       />
-                      <div className="ml-4">
-                        <div className="text-sm font-semibold text-gray-900">{doctor.name}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base font-semibold text-gray-900">
+                          Dr. {doctor.name}
+                        </div>
+                        <div className="text-sm text-indigo-600 font-medium mt-0.5">
+                          {doctor.doctorCategory || "General Medicine"}
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+                          {doctor.experienceYear && (
+                            <span>
+                              {doctor.experienceYear} years experience -{" "}
+                            </span>
+                          )}
+                          {doctor.location && <span>{doctor.location}</span>}
+                        </div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {doctor.doctorCategory || "General Practitioner"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex flex-col">
-                      <span>{doctor.email}</span>
-                      {doctor.phone && <span className="text-gray-400 text-xs mt-1">{doctor.phone}</span>}
+
+                    {/* Extra info row (fee + booking number) - visible on mobile */}
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 sm:hidden">
+                      <div>
+                        Fee:{" "}
+                        <span className="font-medium text-gray-900">
+                          ৳{doctor.consultationFee?.toLocaleString() || "—"}
+                        </span>
+                      </div>
+                      {doctor.appointmentNumber && (
+                        <div>
+                          Booking:{" "}
+                          <span className="font-medium">
+                            {doctor.appointmentNumber}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleAppointmentClick(doctor)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
-                    >
-                      Book Appointment
-                    </button>
-                  </td>
-                </tr>
+
+                    {/* Book button - full width on mobile */}
+                    <div>
+                      <button
+                        onClick={() => handleAppointmentClick(doctor)}
+                        className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm"
+                      >
+                        Book Appointment
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Desktop-only extra info */}
+                  <div className="hidden sm:flex sm:items-center sm:justify-between mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600">
+                    <div className="flex gap-6">
+                      <div>
+                        Fee:{" "}
+                        <span className="font-medium text-gray-900">
+                          ৳{doctor.consultationFee?.toLocaleString() || "—"}
+                        </span>
+                      </div>
+                      {doctor.appointmentNumber && (
+                        <div>
+                          Booking No:{" "}
+                          <span className="font-medium">
+                            {doctor.appointmentNumber}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {doctor.chamberDays?.length > 0 &&
+                        doctor.chamberDays.join(" • ")}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+
+              {doctors.length === 0 && (
+                <div className="py-16 text-center text-gray-500">
+                  No doctors available at the moment.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Pagination Component */}
+          <Pagination
+            data={doctors}
+            itemsPerPage={itemsPerPage}
+            onPageDataChange={setPaginatedDoctors}
+          />
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col md:flex-row justify-between items-center mt-6 space-y-4 md:space-y-0">
-          <div className="text-sm text-gray-600">
-            Showing <span className="font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-            <span className="font-semibold">{Math.min(currentPage * itemsPerPage, totalDoctors)}</span> of{" "}
-            <span className="font-semibold">{totalDoctors}</span> doctors
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index}
-                onClick={() => handlePageClick(index + 1)}
-                className={`px-4 py-2 text-sm font-medium ${
-                  currentPage === index + 1
-                    ? "text-white bg-blue-600 border border-blue-600"
-                    : "text-gray-700 bg-white border border-gray-300"
-                } rounded-md hover:bg-gray-50`}
-              >
-                {index + 1}
-              </button>
-            ))}
-            
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-
-        {/* Appointment Modal */}
+        {/* Modal */}
         {showModal && selectedDoctor && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-800">
-                  Book Appointment with Dr. {selectedDoctor.name}
+          <div className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-200 bg-linear-to-r from-indigo-50 to-white">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Appointment with Dr. {selectedDoctor.name}
                 </h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  {selectedDoctor.doctorCategory} • ৳
+                  {selectedDoctor.consultationFee?.toLocaleString() || "—"}
+                </p>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Patient Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Patient Name
+                  </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={patientName}
                     onChange={(e) => setPatientName(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    placeholder="Your full name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Phone Number
+                  </label>
                   <input
                     type="tel"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    placeholder="+880 1XXXXXXXXX"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Appointment Date</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={appointmentDate}
-                    onChange={(e) => setAppointmentDate(e.target.value)}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Appointment Time</label>
-                  <input
-                    type="time"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={appointmentTime}
-                    onChange={(e) => setAppointmentTime(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Visit</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Reason for Visit
+                  </label>
                   <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="3"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                    placeholder="Describe your symptoms or purpose of visit..."
                   />
                 </div>
               </div>
 
-              <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <div className="px-6 py-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-4">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAppointmentSubmit}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-colors"
                 >
-                  Confirm Appointment
+                  Confirm Booking
                 </button>
               </div>
             </div>
