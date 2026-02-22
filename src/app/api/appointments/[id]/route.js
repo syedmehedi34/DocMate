@@ -25,9 +25,7 @@ export async function PATCH(request, { params }) {
       return unauthorized();
     }
 
-    // Turbopack fix: params await করো
     const { id } = await params;
-
     const body = await request.json();
 
     const appointment = await Appointment.findById(id);
@@ -35,11 +33,12 @@ export async function PATCH(request, { params }) {
       return notFound();
     }
 
-    const userId = session.user.id;
-    const userRole = session.user.role;
+    const userId = session?.user.id;
+    const userRole = session?.user.role;
 
     let updatedFields = {};
 
+    // doctor updates only
     if (userRole === "doctor") {
       if (appointment.doctorId.toString() !== userId) {
         return forbidden("This is not your appointment");
@@ -68,19 +67,30 @@ export async function PATCH(request, { params }) {
       if (body.doctorNotes !== undefined) {
         updatedFields.doctorNotes = body.doctorNotes;
       }
-    } else if (userRole === "patient") {
+    }
+    // user update only
+    else if (userRole === "user") {
       const patientId = appointment.applicantUserId || appointment.userId;
+
       if (patientId?.toString() !== userId) {
         return forbidden("This is not your appointment");
       }
 
+      // only user can cancel their appointment
       if (body.status === "cancelled") {
+        if (appointment.status !== "pending") {
+          return forbidden(
+            "You can only cancel pending and unconfirmed appointments",
+          );
+        }
+
         updatedFields.status = "cancelled";
-        updatedFields.cancelledBy = "patient";
       } else {
-        return forbidden("Patients can only cancel");
+        return forbidden("Users/patients can only cancel appointments");
       }
-    } else if (userRole === "admin") {
+    }
+    //
+    else if (userRole === "admin") {
       updatedFields = { ...body };
     } else {
       return forbidden("Invalid role");
@@ -104,7 +114,7 @@ export async function PATCH(request, { params }) {
       appointment,
     });
   } catch (error) {
-    console.error("PATCH /api/appointments/[id] error:", error);
+    console.error("PATCH error:", error);
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
       { status: 500 },

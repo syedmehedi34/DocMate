@@ -40,19 +40,19 @@ const AllAppointmentsPage = () => {
     }
 
     try {
-      const res = await fetch(`/api/appointments/cancel`, {
-        method: "DELETE",
+      const res = await fetch(`/api/appointments/${appointmentId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appointmentId }),
+        body: JSON.stringify({ status: "cancelled" }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         alert("Appointment cancelled successfully!");
-        fetchAppointments();
+        fetchAppointments(); // list refresh
       } else {
-        alert(data.message || "Failed to cancel appointment");
+        alert(data.error || "Failed to cancel appointment");
       }
     } catch (err) {
       console.error("Cancel error:", err);
