@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-// import { getServerSession } from "next-auth/next";
-import { getServerSession } from "next-auth";
-import Appointment from "@/app/components/Appointment";
+import { auth } from "@/auth";
+// import dbConnect from "@/lib/mongodb";
+import Appointment from "../../../../../models/Appointment";
 import dbConnect from "../../../../../lib/mongodb";
 
-// Helper response functions
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
@@ -21,12 +20,14 @@ export async function PATCH(request, { params }) {
   try {
     await dbConnect();
 
-    const session = await getServerSession();
+    const session = await auth();
     if (!session?.user) {
       return unauthorized();
     }
 
-    const { id } = params;
+    // Turbopack fix: params await করো
+    const { id } = await params;
+
     const body = await request.json();
 
     const appointment = await Appointment.findById(id);
@@ -55,22 +56,19 @@ export async function PATCH(request, { params }) {
           updatedFields.isAppointmentConfirmed = false;
         } else if (newStatus === "cancelled") {
           updatedFields.status = "cancelled";
+          updatedFields.cancelledBy = "doctor";
         } else {
           return NextResponse.json(
-            { error: "Invalid status value" },
+            { error: "Invalid status" },
             { status: 400 },
           );
         }
       }
 
-      // Doctor can add notes if needed
       if (body.doctorNotes !== undefined) {
         updatedFields.doctorNotes = body.doctorNotes;
       }
-    }
-    //
-    // Patients can only cancel their own appointments
-    else if (userRole === "patient") {
+    } else if (userRole === "patient") {
       const patientId = appointment.applicantUserId || appointment.userId;
       if (patientId?.toString() !== userId) {
         return forbidden("This is not your appointment");
@@ -80,13 +78,9 @@ export async function PATCH(request, { params }) {
         updatedFields.status = "cancelled";
         updatedFields.cancelledBy = "patient";
       } else {
-        return forbidden("Patients can only cancel their appointments");
+        return forbidden("Patients can only cancel");
       }
-    }
-    //
-    // Admins can update anything, but we should still validate status if provided
-    else if (userRole === "admin") {
-      // Admin can update anything
+    } else if (userRole === "admin") {
       updatedFields = { ...body };
     } else {
       return forbidden("Invalid role");
@@ -94,12 +88,11 @@ export async function PATCH(request, { params }) {
 
     if (Object.keys(updatedFields).length === 0) {
       return NextResponse.json(
-        { error: "No valid updates provided" },
+        { error: "No updates provided" },
         { status: 400 },
       );
     }
 
-    // Apply changes
     Object.assign(appointment, updatedFields);
     appointment.updatedAt = new Date();
 
