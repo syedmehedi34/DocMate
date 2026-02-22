@@ -9,8 +9,8 @@ const DoctorAppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortDate, setSortDate] = useState(""); // selected date for sorting
-  const [uniqueDates, setUniqueDates] = useState([]); // dropdown-এর জন্য dates
+  const [sortDate, setSortDate] = useState("");
+  const [uniqueDates, setUniqueDates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,7 +38,7 @@ const DoctorAppointmentsPage = () => {
       });
     }
 
-    // Date sort filter
+    // Date filter
     if (sortDate) {
       result = result.filter((appt) => appt.appointmentDate === sortDate);
     }
@@ -46,13 +46,13 @@ const DoctorAppointmentsPage = () => {
     setFilteredAppointments(result);
   }, [searchTerm, sortDate, appointments]);
 
-  // Unique dates extract করা (dropdown-এর জন্য)
+  // Unique dates for dropdown
   useEffect(() => {
     if (appointments.length > 0) {
       const dates = [
         ...new Set(appointments.map((appt) => appt.appointmentDate)),
       ];
-      setUniqueDates(dates.filter(Boolean).sort()); // sort করে রাখা
+      setUniqueDates(dates.filter(Boolean).sort());
     }
   }, [appointments]);
 
@@ -72,6 +72,7 @@ const DoctorAppointmentsPage = () => {
 
       const data = await res.json();
       setAppointments(data || []);
+      setFilteredAppointments(data || []);
     } catch (err) {
       console.error("Fetch error:", err);
       setError("Failed to load pending appointments. Please try again.");
@@ -111,6 +112,21 @@ const DoctorAppointmentsPage = () => {
 
   const clearSort = () => {
     setSortDate("");
+  };
+
+  // Highlight function (একবারই define করা হলো)
+  const highlightText = (text = "") => {
+    if (!searchTerm.trim() || !text) return text;
+
+    const regex = new RegExp(
+      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+
+    return text.replace(
+      regex,
+      '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
+    );
   };
 
   if (loading) {
@@ -285,9 +301,13 @@ const DoctorAppointmentsPage = () => {
                     className="hover:bg-blue-50/40 transition-colors duration-150"
                   >
                     <td className="px-4 py-5 sm:px-6">
-                      <div className="font-medium text-gray-900">
-                        {appt.patientName || "—"}
-                      </div>
+                      {/* Highlight Patient Name */}
+                      <div
+                        className="font-medium text-gray-900"
+                        dangerouslySetInnerHTML={{
+                          __html: highlightText(appt.patientName || "—"),
+                        }}
+                      />
                       <div className="text-sm text-gray-500 mt-0.5">
                         {appt.patientGender || "—"} ({appt.patientAge || "?"}{" "}
                         Yrs)
@@ -296,7 +316,14 @@ const DoctorAppointmentsPage = () => {
 
                     <td className="hidden md:table-cell px-4 py-5 sm:px-6">
                       <div className="text-sm text-gray-900">
-                        {appt.applicantEmail || appt.patientEmail || "—"}
+                        {/* Highlight Email */}
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: highlightText(
+                              appt.applicantEmail || appt.patientEmail || "—",
+                            ),
+                          }}
+                        />
                       </div>
                       <div className="text-sm text-gray-500">
                         {appt.patientPhone || "—"}

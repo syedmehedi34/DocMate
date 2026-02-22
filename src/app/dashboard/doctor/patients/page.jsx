@@ -60,7 +60,7 @@ const DoctorPatientsPage = () => {
 
       const data = await res.json();
       setPatients(data || []);
-      setFilteredPatients(data || []); // initial filter
+      setFilteredPatients(data || []);
     } catch (err) {
       console.error("Failed to load patients:", err);
       setError(err.message || "Could not load patient list.");
@@ -73,6 +73,21 @@ const DoctorPatientsPage = () => {
 
   const clearSearch = () => {
     setSearchTerm("");
+  };
+
+  // Highlight function — match করা অংশকে mark করে
+  const highlightText = (text = "") => {
+    if (!searchTerm.trim() || !text) return text;
+
+    const regex = new RegExp(
+      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+
+    return text.replace(
+      regex,
+      '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
+    );
   };
 
   if (loading) {
@@ -233,16 +248,29 @@ const DoctorPatientsPage = () => {
                     </td>
 
                     <td className="px-4 py-5 sm:px-6">
-                      <div className="font-medium text-gray-900">
-                        {patient.patientName || patient.applicantName || "—"}
-                      </div>
+                      {/* Highlight Patient Name */}
+                      <div
+                        className="font-medium text-gray-900"
+                        dangerouslySetInnerHTML={{
+                          __html: highlightText(
+                            patient.patientName || patient.applicantName || "—",
+                          ),
+                        }}
+                      />
                       <div className="text-sm text-gray-500 mt-0.5">
                         ID: {patient.applicantUserId?.slice(-8) || "—"}
                       </div>
                     </td>
 
                     <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
-                      {patient.applicantEmail || patient.email || "—"}
+                      {/* Highlight Email */}
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: highlightText(
+                            patient.applicantEmail || patient.email || "—",
+                          ),
+                        }}
+                      />
                     </td>
 
                     <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
