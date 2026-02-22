@@ -1,87 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
+import useUserById from "@/hooks/useUserById";
 
 const DoctorPage = () => {
+  const itemsPerPage = 6;
   const [doctors, setDoctors] = useState([]);
   const [paginatedDoctors, setPaginatedDoctors] = useState([]);
-  const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [appointmentTime, setAppointmentTime] = useState("");
-  const [patientName, setPatientName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [reason, setReason] = useState("");
-  const { data: session } = useSession();
+  const { user, isLoading, error } = useUserById();
+  console.log(user?._id);
 
-  const itemsPerPage = 6;
-
-  const handleAppointmentClick = (doctor) => {
-    setSelectedDoctor(doctor);
-    setShowModal(true);
-  };
-
-  const handleAppointmentSubmit = async () => {
-    if (
-      !selectedDoctor ||
-      !appointmentDate ||
-      !appointmentTime ||
-      !patientName ||
-      !phone ||
-      !reason
-    ) {
-      alert("Please fill in all the fields.");
-      return;
-    }
-
-    const appointmentData = {
-      doctorId: selectedDoctor._id,
-      doctorName: selectedDoctor.name,
-      doctorEmail: selectedDoctor.email,
-      userId: session?.user?.id,
-      userName: session?.user?.name,
-      userEmail: session?.user?.email,
-      patientName,
-      phone,
-      reason,
-      date: appointmentDate,
-      time: appointmentTime,
-    };
-
-    try {
-      const res = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(appointmentData),
-      });
-
-      const result = await res.json();
-
-      if (res.ok) {
-        const userUpdateData = { isPatient: true };
-        const userRes = await fetch(`/api/users/${session?.user?.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userUpdateData),
-        });
-
-        if (userRes.ok) {
-          alert("Appointment booked successfully!");
-        } else {
-          alert("Failed to update user status.");
-        }
-        setShowModal(false);
-      } else {
-        alert(result.message || "Something went wrong!");
-      }
-    } catch (error) {
-      console.error("Error booking appointment:", error);
-    }
-  };
-
+  // fetch all doctors data
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -94,6 +26,8 @@ const DoctorPage = () => {
     };
     fetchDoctors();
   }, []);
+
+  // book appointment handler
 
   return (
     <RoleGuard allowedRoles={["user"]}>
@@ -168,7 +102,9 @@ const DoctorPage = () => {
                     {/* Book button - full width on mobile */}
                     <div>
                       <button
-                        onClick={() => handleAppointmentClick(doctor)}
+                        onClick={() =>
+                          document.getElementById("my_modal_1").showModal()
+                        }
                         className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm"
                       >
                         Book Appointment
@@ -219,102 +155,24 @@ const DoctorPage = () => {
         </div>
 
         {/* Modal */}
-        {showModal && selectedDoctor && (
-          <div className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-200 bg-linear-to-r from-indigo-50 to-white">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Appointment with Dr. {selectedDoctor.name}
-                </h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  {selectedDoctor.doctorCategory} • ৳
-                  {selectedDoctor.consultationFee?.toLocaleString() || "—"}
-                </p>
-              </div>
+        <dialog id="my_modal_1" className="modal">
+          <div className="modal-box">
+            {/* modal content */}
+            <div>
+              <h3 className="font-bold text-lg">Hello!</h3>
+              <p className="py-4">
+                Press ESC key or click the button below to close
+              </p>
+            </div>
 
-              <div className="p-6 space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Patient Name
-                  </label>
-                  <input
-                    type="text"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                    placeholder="Your full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                    placeholder="+880 1XXXXXXXXX"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      value={appointmentDate}
-                      onChange={(e) => setAppointmentDate(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Time
-                    </label>
-                    <input
-                      type="time"
-                      value={appointmentTime}
-                      onChange={(e) => setAppointmentTime(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Reason for Visit
-                  </label>
-                  <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
-                    placeholder="Describe your symptoms or purpose of visit..."
-                  />
-                </div>
-              </div>
-
-              <div className="px-6 py-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-4">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAppointmentSubmit}
-                  className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-colors"
-                >
-                  Confirm Booking
-                </button>
-              </div>
+            <div className="modal-action">
+              <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn">Close</button>
+              </form>
             </div>
           </div>
-        )}
+        </dialog>
       </div>
     </RoleGuard>
   );
