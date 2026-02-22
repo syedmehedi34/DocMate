@@ -293,16 +293,16 @@ const DoctorPage = () => {
           id="booking_modal"
           className="modal modal-bottom sm:modal-middle"
         >
-          <div className="modal-box max-w-4xl p-0 overflow-hidden">
-            {/* Header */}
-            <div className="bg-indigo-600 text-white px-6 py-4">
+          <div className="modal-box max-w-4xl w-11/12 p-0 overflow-hidden rounded-2xl">
+            {/* Header  */}
+            <div className="bg-indigo-600 text-white px-6 py-4 sticky top-0 z-10">
               <h3 className="text-xl font-bold">
                 Book Appointment with Dr. {selectedDoctor?.name}
               </h3>
             </div>
 
             {/* Body */}
-            <div className="p-6">
+            <div className="p-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100">
               {selectedDoctor && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                   {/* LEFT - Form */}
@@ -342,7 +342,7 @@ const DoctorPage = () => {
                         className="input input-bordered w-full focus:border-indigo-500"
                       />
 
-                      {/* mobile number & gender */}
+                      {/* Mobile number & gender */}
                       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                         <div className="w-full sm:flex-1">
                           <PhoneInput
@@ -377,10 +377,6 @@ const DoctorPage = () => {
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                           </select>
-                          {/* <ChevronDown
-                            className="absolute top-3 right-3 text-gray-500 pointer-events-none"
-                            size={16}
-                          /> */}
                         </div>
                       </div>
 
@@ -389,7 +385,7 @@ const DoctorPage = () => {
                         placeholder="Disease / Symptoms / Reason for visit"
                         value={form.disease}
                         onChange={handleChange}
-                        rows={3}
+                        rows={4}
                         className="textarea textarea-bordered w-full focus:border-indigo-500"
                       />
 
@@ -405,7 +401,7 @@ const DoctorPage = () => {
                         />
                         <label
                           htmlFor="cash-agree"
-                          className="text-sm cursor-pointer"
+                          className="text-sm cursor-pointer select-none"
                         >
                           <strong>I agree:</strong> Consultation fee will be
                           paid in <strong>cash</strong> on the appointment day.
@@ -420,33 +416,40 @@ const DoctorPage = () => {
                       Confirm Booking
                     </h4>
 
-                    <div className="space-y-3 text-base">
-                      <p>
+                    <div className="space-y-4 text-base">
+                      <div className="flex justify-between">
                         <span className="font-semibold text-indigo-700">
                           Doctor:
-                        </span>{" "}
-                        Dr. {selectedDoctor.name}
-                      </p>
-                      <p>
+                        </span>
+                        <span>Dr. {selectedDoctor.name}</span>
+                      </div>
+
+                      <div className="flex justify-between">
                         <span className="font-semibold text-indigo-700">
                           Date:
-                        </span>{" "}
-                        {selectedDate || "— Please select —"}
-                      </p>
-                      <p>
+                        </span>
+                        <span>{selectedDate || "— Please select —"}</span>
+                      </div>
+
+                      <div className="flex justify-between">
                         <span className="font-semibold text-indigo-700">
                           Fee:
-                        </span>{" "}
-                        ৳
-                        {selectedDoctor.consultationFee?.toLocaleString() ||
-                          "—"}
-                      </p>
-                      <p>
+                        </span>
+                        <span>
+                          ৳
+                          {selectedDoctor.consultationFee?.toLocaleString() ||
+                            "—"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
                         <span className="font-semibold text-indigo-700">
                           Payment:
-                        </span>{" "}
-                        {agreeCashPayment ? "Cash on day" : "Not confirmed"}
-                      </p>
+                        </span>
+                        <span>
+                          {agreeCashPayment ? "Cash on day" : "Not confirmed"}
+                        </span>
+                      </div>
 
                       <div className="mt-6">
                         <h5 className="font-semibold mb-2">Available Dates</h5>
@@ -488,9 +491,9 @@ const DoctorPage = () => {
                         <button
                           type="button"
                           onClick={handleSubmit}
-                          disabled={!isFormValid}
+                          disabled={!isFormValid || isSubmitting}
                           className={`btn flex-1 text-white gap-2 ${
-                            isFormValid
+                            isFormValid && !isSubmitting
                               ? "btn-success"
                               : "btn-disabled bg-gray-400 cursor-not-allowed"
                           }`}
@@ -515,14 +518,14 @@ const DoctorPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="modal-action px-6 pb-6 pt-2 border-t">
+            <div className="modal-action px-6 py-4 border-t bg-base-100 sticky bottom-0 z-10">
               <form method="dialog">
-                <button className="btn">Close</button>
+                <button className="btn btn-outline">Close</button>
               </form>
             </div>
           </div>
 
-          {/* Click outside / backdrop close */}
+          {/* closing button */}
           <form method="dialog" className="modal-backdrop">
             <button>close</button>
           </form>
