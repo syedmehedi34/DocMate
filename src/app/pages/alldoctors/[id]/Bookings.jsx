@@ -243,7 +243,7 @@ const Bookings = ({ doctor, currency }) => {
             <input
               type="email"
               name="email"
-              placeholder="Enter E-mail"
+              placeholder="Enter E-mail (Optional)"
               value={form.email}
               onChange={handleChange}
               className="input w-full focus:outline-none focus:border-2 focus:border-[#93C249]"
