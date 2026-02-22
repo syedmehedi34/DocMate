@@ -19,10 +19,10 @@ export async function GET(req) {
 
     const pendingAppointments = await Appointment.find({
       doctorId: doctorId,
-      isAppointmentConfirmed: false, // pending
-      // isRejected: { $ne: true }       // uncomment করলে rejected গুলো দেখাবে না
+      isAppointmentConfirmed: false,
+      status: "pending",
     })
-      .sort({ appliedAt: -1 }) // newest first
+      .sort({ appliedAt: -1 })
       .lean();
 
     const appointmentsWithPatientInfo = await Promise.all(
@@ -30,22 +30,11 @@ export async function GET(req) {
         const patient = await User.findById(
           appointment.applicantUserId || appointment.userId,
         )
-          .select("name email phone")
+          // .select("name email phone")
           .lean();
 
         return {
-          _id: appointment._id.toString(),
-          patientName: patient?.name || "Unknown",
-          patientEmail: patient?.email || "—",
-          patientPhone: patient?.phone || appointment.phone || "—",
-          diseaseDetails:
-            appointment.diseaseDetails || appointment.reason || "—",
-          appointmentDate:
-            appointment.appointmentDate || appointment.date || "—",
-          time: appointment.time || "—", // যদি time ফিল্ড থাকে
-          appliedAt: appointment.appliedAt,
-          consultationFee: appointment.consultationFee,
-          currency: appointment.currency || "BDT",
+          ...appointment,
         };
       }),
     );
