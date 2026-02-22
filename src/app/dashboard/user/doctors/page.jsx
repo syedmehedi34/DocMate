@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
 import useUserById from "@/hooks/useUserById";
-import { ChevronDown, CircleCheckBig, RotateCcw } from "lucide-react";
+import {
+  ArrowDownUp,
+  Calendar,
+  CircleCheckBig,
+  RotateCcw,
+  Search,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -13,6 +20,9 @@ const DoctorPage = () => {
   const itemsPerPage = 6;
   const [doctors, setDoctors] = useState([]);
   const [paginatedDoctors, setPaginatedDoctors] = useState([]);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortSpeciality, setSortSpeciality] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const { user, isLoading: userLoading, error: userError } = useUserById();
@@ -44,6 +54,48 @@ const DoctorPage = () => {
     };
     fetchDoctors();
   }, []);
+
+  // Real-time search + sort filter
+  useEffect(() => {
+    let result = [...doctors];
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter((doctor) => {
+        const name = (doctor.name || "").toLowerCase();
+        const speciality = (doctor.doctorCategory || "").toLowerCase();
+        return name.includes(term) || speciality.includes(term);
+      });
+    }
+
+    // Sort by speciality
+    if (sortSpeciality) {
+      result = result.filter((doctor) => {
+        return (
+          (doctor.doctorCategory || "").toLowerCase() ===
+          sortSpeciality.toLowerCase()
+        );
+      });
+    }
+
+    setFilteredDoctors(result);
+  }, [searchTerm, sortSpeciality, doctors]);
+
+  // Highlight function (এখানে define করা হলো — scope ঠিক)
+  const highlightText = (text = "") => {
+    if (!searchTerm.trim() || !text) return text;
+
+    const regex = new RegExp(
+      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+
+    return text.replace(
+      regex,
+      '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
+    );
+  };
 
   const getFutureDates = (doctor) => {
     if (!doctor?.openAppointmentsDates) return [];
@@ -112,7 +164,7 @@ const DoctorPage = () => {
       patientPhone: form.phone.trim(),
       appointmentDate: selectedDate,
       consultationFee: selectedDoctor?.consultationFee,
-      currency: "BDT", // ← adjust if needed
+      currency: "BDT",
       cashOnAppointmentDay: true,
       diseaseDetails: form.disease?.trim() || undefined,
       appliedAt: new Date().toISOString(),
@@ -179,6 +231,61 @@ const DoctorPage = () => {
             </h1>
           </div>
 
+          {/* Search + Sort Controls */}
+          <div className="mb-8 flex flex-col justify-between sm:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md text-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+
+              <input
+                type="text"
+                placeholder="Search by doctor name, specialities, etc..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder-gray-400"
+              />
+
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Sort by Speciality Dropdown */}
+            <div className="relative w-full sm:w-64 text-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <ArrowDownUp className="h-4 w-4 text-gray-400" />
+              </div>
+
+              <select
+                value={sortSpeciality}
+                onChange={(e) => setSortSpeciality(e.target.value)}
+                className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 bg-white"
+              >
+                <option value="">Sort by Speciality (All)</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pediatrics">Pediatrics</option>
+              </select>
+
+              {sortSpeciality && (
+                <button
+                  onClick={() => setSortSpeciality("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Doctors List */}
           <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
             <div className="divide-y divide-gray-300">
@@ -199,10 +306,22 @@ const DoctorPage = () => {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-base font-semibold text-gray-900">
-                          Dr. {doctor.name}
+                          {/* Highlight Doctor Name */}
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: highlightText(`Dr. ${doctor.name}`),
+                            }}
+                          />
                         </div>
                         <div className="text-sm text-indigo-600 font-medium mt-0.5">
-                          {doctor.doctorCategory || "General Medicine"}
+                          {/* Highlight Speciality */}
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: highlightText(
+                                doctor.doctorCategory || "General Medicine",
+                              ),
+                            }}
+                          />
                         </div>
                         <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
                           {doctor.experienceYear && (
@@ -236,7 +355,7 @@ const DoctorPage = () => {
                       <button
                         onClick={() => {
                           setSelectedDoctor(doctor);
-                          resetForm(); // important: clean previous data
+                          resetForm();
                           document.getElementById("booking_modal").showModal();
                         }}
                         className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm"
@@ -280,21 +399,19 @@ const DoctorPage = () => {
           </div>
 
           <Pagination
-            data={doctors}
+            data={filteredDoctors}
             itemsPerPage={itemsPerPage}
             onPageDataChange={setPaginatedDoctors}
           />
         </div>
 
-        {/* ────────────────────────────────────────
-            Booking Modal
-        ──────────────────────────────────────── */}
+        {/* Booking Modal */}
         <dialog
           id="booking_modal"
           className="modal modal-bottom sm:modal-middle"
         >
           <div className="modal-box max-w-4xl w-11/12 p-0 overflow-hidden rounded-2xl">
-            {/* Header  */}
+            {/* Header */}
             <div className="bg-indigo-600 text-white px-6 py-4 sticky top-0 z-10">
               <h3 className="text-xl font-bold">
                 Book Appointment with Dr. {selectedDoctor?.name}
@@ -389,7 +506,8 @@ const DoctorPage = () => {
                         className="textarea textarea-bordered w-full focus:border-indigo-500"
                       />
 
-                      <div className="flex items-start gap-3 mt-5">
+                      {/* checkbox container */}
+                      <div className="flex items-start gap-3 mt-5 ">
                         <input
                           type="checkbox"
                           id="cash-agree"
@@ -401,7 +519,7 @@ const DoctorPage = () => {
                         />
                         <label
                           htmlFor="cash-agree"
-                          className="text-sm cursor-pointer select-none"
+                          className="text-sm cursor-pointer"
                         >
                           <strong>I agree:</strong> Consultation fee will be
                           paid in <strong>cash</strong> on the appointment day.
@@ -416,40 +534,33 @@ const DoctorPage = () => {
                       Confirm Booking
                     </h4>
 
-                    <div className="space-y-4 text-base">
-                      <div className="flex justify-between">
+                    <div className="space-y-3 text-base">
+                      <p>
                         <span className="font-semibold text-indigo-700">
                           Doctor:
-                        </span>
-                        <span>Dr. {selectedDoctor.name}</span>
-                      </div>
-
-                      <div className="flex justify-between">
+                        </span>{" "}
+                        Dr. {selectedDoctor.name}
+                      </p>
+                      <p>
                         <span className="font-semibold text-indigo-700">
                           Date:
-                        </span>
-                        <span>{selectedDate || "— Please select —"}</span>
-                      </div>
-
-                      <div className="flex justify-between">
+                        </span>{" "}
+                        {selectedDate || "— Please select —"}
+                      </p>
+                      <p>
                         <span className="font-semibold text-indigo-700">
                           Fee:
-                        </span>
-                        <span>
-                          ৳
-                          {selectedDoctor.consultationFee?.toLocaleString() ||
-                            "—"}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between">
+                        </span>{" "}
+                        ৳
+                        {selectedDoctor.consultationFee?.toLocaleString() ||
+                          "—"}
+                      </p>
+                      <p>
                         <span className="font-semibold text-indigo-700">
                           Payment:
-                        </span>
-                        <span>
-                          {agreeCashPayment ? "Cash on day" : "Not confirmed"}
-                        </span>
-                      </div>
+                        </span>{" "}
+                        {agreeCashPayment ? "Cash on day" : "Not confirmed"}
+                      </p>
 
                       <div className="mt-6">
                         <h5 className="font-semibold mb-2">Available Dates</h5>
@@ -491,9 +602,9 @@ const DoctorPage = () => {
                         <button
                           type="button"
                           onClick={handleSubmit}
-                          disabled={!isFormValid || isSubmitting}
+                          disabled={!isFormValid}
                           className={`btn flex-1 text-white gap-2 ${
-                            isFormValid && !isSubmitting
+                            isFormValid
                               ? "btn-success"
                               : "btn-disabled bg-gray-400 cursor-not-allowed"
                           }`}
@@ -518,14 +629,13 @@ const DoctorPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="modal-action px-6 py-4 border-t bg-base-100 sticky bottom-0 z-10">
+            <div className="modal-action px-6 pb-6 pt-2 border-t bg-base-100 sticky bottom-0 z-10">
               <form method="dialog">
-                <button className="btn btn-outline">Close</button>
+                <button className="btn">Close</button>
               </form>
             </div>
           </div>
 
-          {/* closing button */}
           <form method="dialog" className="modal-backdrop">
             <button>close</button>
           </form>
