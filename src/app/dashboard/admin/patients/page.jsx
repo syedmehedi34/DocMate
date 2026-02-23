@@ -6,7 +6,7 @@ import {
   Search,
   X,
   RefreshCw,
-  User,
+  ArrowDownRight,
   Mail,
   Phone,
   Calendar,
@@ -45,31 +45,45 @@ const UserPage = () => {
     }
   };
 
-  // Simple search filter
+  // Search + highlight logic
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredPatients(patients);
-      return;
+    let result = [...patients];
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter((p) => {
+        const name = (p.name || "").toLowerCase();
+        const email = (p.email || "").toLowerCase();
+        const phone = (p.appointmentNumber || "").toLowerCase();
+        return (
+          name.includes(term) || email.includes(term) || phone.includes(term)
+        );
+      });
     }
 
-    const term = searchTerm.toLowerCase().trim();
-    const filtered = patients.filter(
-      (p) =>
-        (p.name || "").toLowerCase().includes(term) ||
-        (p.email || "").toLowerCase().includes(term),
-    );
-
-    setFilteredPatients(filtered);
+    setFilteredPatients(result);
   }, [patients, searchTerm]);
+
+  // Highlight matching text
+  const highlightText = (text = "") => {
+    if (!searchTerm.trim() || !text) return text;
+    const regex = new RegExp(
+      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+    return text.replace(
+      regex,
+      '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
+    );
+  };
+
+  const clearSearch = () => setSearchTerm("");
 
   if (loading) {
     return (
       <RoleGuard allowedRoles={["admin"]}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="flex items-center gap-3 text-teal-600">
-            <RefreshCw className="animate-spin" size={20} />
-            <span>Loading patients...</span>
-          </div>
+        <div className="p-6 flex justify-center items-center min-h-[60vh]">
+          <div className="animate-pulse text-gray-500">Loading patients...</div>
         </div>
       </RoleGuard>
     );
@@ -78,13 +92,14 @@ const UserPage = () => {
   if (error) {
     return (
       <RoleGuard allowedRoles={["admin"]}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button onClick={fetchData} className="btn btn-outline btn-error">
-              Retry
-            </button>
-          </div>
+        <div className="p-6 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">
+          {error}
+          <button
+            onClick={fetchData}
+            className="ml-4 btn btn-sm btn-outline btn-error"
+          >
+            Retry
+          </button>
         </div>
       </RoleGuard>
     );
@@ -92,151 +107,216 @@ const UserPage = () => {
 
   return (
     <RoleGuard allowedRoles={["admin"]}>
-      <div className="min-h-screen bg-gray-50 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">All Patients</h1>
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            All Patients
+          </h2>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 font-medium">
-                {filteredPatients.length} patient
-                {filteredPatients.length !== 1 && "s"}
-              </span>
-
-              <button
-                onClick={fetchData}
-                className="btn btn-outline btn-sm gap-2"
-              >
-                <RefreshCw size={16} />
-                Refresh
-              </button>
-            </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">
+              {filteredPatients.length} patient
+              {filteredPatients.length !== 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={fetchData}
+              className="btn btn-outline btn-sm gap-2"
+            >
+              <RefreshCw size={16} />
+              Refresh
+            </button>
           </div>
-
-          {/* Search Bar */}
-          <div className="mb-8">
-            <div className="relative max-w-md">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input input-bordered w-full pl-10 pr-10"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X size={18} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Table */}
-          {filteredPatients.length === 0 ? (
-            <div className="bg-white rounded-xl shadow border p-12 text-center text-gray-500">
-              No patients found matching your search.
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full">
-                  <thead>
-                    <tr>
-                      <th className="w-12">#</th>
-                      <th>Patient</th>
-                      <th>Contact</th>
-                      <th>Appointments</th>
-                      <th className="w-32 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedPatients.map((patient, idx) => {
-                      const apptCount = patient.appointments?.length || 0;
-
-                      return (
-                        <tr key={patient._id} className="hover">
-                          <td>{idx + 1}</td>
-
-                          <td>
-                            <div className="flex items-center gap-3">
-                              <div className="avatar">
-                                <div className="w-10 rounded-full">
-                                  <img
-                                    src={
-                                      patient.image ||
-                                      "https://i.ibb.co/33gs5fP/user.png"
-                                    }
-                                    alt={patient.name || "Patient"}
-                                  />
-                                </div>
-                              </div>
-                              <div>
-                                <div className="font-medium">
-                                  {patient.name || "—"}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  ID: {patient._id.slice(-8)}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="text-sm">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <Mail size={14} className="text-gray-500" />
-                                {patient.email || "—"}
-                              </div>
-                              {patient.appointmentNumber && (
-                                <div className="flex items-center gap-2">
-                                  <Phone size={14} className="text-gray-500" />
-                                  {patient.appointmentNumber}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="badge badge-outline badge-info gap-1">
-                              <Calendar size={14} />
-                              {apptCount}
-                            </div>
-                          </td>
-
-                          <td className="text-right">
-                            <Link
-                              href={`/dashboard/admin/patients/${patient._id}`}
-                              className="btn btn-sm btn-outline btn-primary"
-                            >
-                              View Details
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="p-6 border-t bg-base-200/30">
-                <Pagination
-                  data={filteredPatients}
-                  itemsPerPage={itemsPerPage}
-                  onPageDataChange={setPaginatedPatients}
-                />
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Search Bar (no filter here) */}
+        <div className="mb-6 text-sm">
+          <div className="relative max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by name, email or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder-gray-400"
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table / Empty state */}
+        {filteredPatients.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 shadow-sm">
+            <p className="text-lg">
+              {searchTerm
+                ? "No patients match your search."
+                : "No patients found in the system."}
+            </p>
+            {searchTerm && (
+              <p className="mt-2 text-sm">
+                Try adjusting your search or{" "}
+                <button
+                  onClick={clearSearch}
+                  className="text-blue-600 hover:underline"
+                >
+                  clear search
+                </button>
+              </p>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto shadow-sm ring-1 ring-black/5 rounded-xl">
+              <table className="min-w-full divide-y divide-gray-200 bg-white">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      #
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Avatar
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Patient Info
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Contact
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Appointments
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {paginatedPatients.map((patient, index) => {
+                    const apptCount = patient.appointments?.length || 0;
+
+                    return (
+                      <tr
+                        key={patient._id}
+                        className="hover:bg-blue-50/40 transition-colors duration-150"
+                      >
+                        <td className="px-4 py-5 sm:px-6 text-gray-700">
+                          {index + 1}
+                        </td>
+
+                        <td className="px-4 py-5 sm:px-6">
+                          <div className="h-10 w-10">
+                            <img
+                              className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                              src={
+                                patient.image ||
+                                "https://i.ibb.co/33gs5fP/user.png"
+                              }
+                              alt={patient.name || "Patient"}
+                            />
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-5 sm:px-6">
+                          <div className="flex flex-col">
+                            <div
+                              className="font-medium text-gray-900"
+                              dangerouslySetInnerHTML={{
+                                __html: highlightText(patient.name || "—"),
+                              }}
+                            />
+                            <div className="text-sm text-gray-600 mt-0.5">
+                              ID: {patient._id.slice(-8)}
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-5 sm:px-6 text-sm">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Mail size={14} className="text-gray-500" />
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: highlightText(patient.email || "—"),
+                                }}
+                              />
+                            </div>
+                            {patient.appointmentNumber && (
+                              <div className="flex items-center gap-2">
+                                <Phone size={14} className="text-gray-500" />
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: highlightText(
+                                      patient.appointmentNumber,
+                                    ),
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-5 sm:px-6">
+                          <div className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 gap-1 items-center">
+                            <Calendar size={14} />
+                            {apptCount}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-5 sm:px-6 text-right text-sm font-medium">
+                          <Link
+                            href={`/dashboard/admin/patients/${patient._id}`}
+                          >
+                            <button className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer">
+                              Details{" "}
+                              <ArrowDownRight
+                                size={17}
+                                className="-rotate-90"
+                              />
+                            </button>
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              data={filteredPatients}
+              itemsPerPage={itemsPerPage}
+              onPageDataChange={setPaginatedPatients}
+            />
+          </>
+        )}
       </div>
     </RoleGuard>
   );
