@@ -2,171 +2,240 @@
 import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
 import { useEffect, useState } from "react";
+import {
+  Search,
+  X,
+  RefreshCw,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+} from "lucide-react";
+import Link from "next/link";
 
 const UserPage = () => {
-  const [data, setData] = useState([]);
-  const [paginatedData, setPaginatedData] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [filteredPatients, setFilteredPatients] = useState([]);
+  const [paginatedPatients, setPaginatedPatients] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const itemsPerPage = 5;
+  const [error, setError] = useState(null);
+
+  const itemsPerPage = 8;
 
   useEffect(() => {
-    fetchUsersAndAppointments();
+    fetchData();
   }, []);
 
-  const fetchUsersAndAppointments = async () => {
+  const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/admin-users-and-appointment");
-      const result = await response.json();
-      setData(result);
-    } catch (error) {
-      console.error("Error fetching users and appointments:", error);
+      const res = await fetch("/api/admin-users-and-appointment");
+      if (!res.ok) throw new Error("Failed to load patients");
+      const data = await res.json();
+      setPatients(data);
+      setFilteredPatients(data);
+    } catch (err) {
+      console.error(err);
+      setError("Could not load patient list.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Simple search filter
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredPatients(patients);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase().trim();
+    const filtered = patients.filter(
+      (p) =>
+        (p.name || "").toLowerCase().includes(term) ||
+        (p.email || "").toLowerCase().includes(term),
+    );
+
+    setFilteredPatients(filtered);
+  }, [patients, searchTerm]);
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-[#105852] text-lg font-medium">
-        Loading patients and appointments...
-      </div>
+      <RoleGuard allowedRoles={["admin"]}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="flex items-center gap-3 text-teal-600">
+            <RefreshCw className="animate-spin" size={20} />
+            <span>Loading patients...</span>
+          </div>
+        </div>
+      </RoleGuard>
     );
   }
 
-  const totalUsers = data.length;
+  if (error) {
+    return (
+      <RoleGuard allowedRoles={["admin"]}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button onClick={fetchData} className="btn btn-outline btn-error">
+              Retry
+            </button>
+          </div>
+        </div>
+      </RoleGuard>
+    );
+  }
 
   return (
     <RoleGuard allowedRoles={["admin"]}>
       <div className="min-h-screen bg-gray-50 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center md:text-left">
-            All Patients
-          </h2>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">All Patients</h1>
 
-          <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-teal-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-sm font-semibold text-teal-800 uppercase tracking-wider"
-                    >
-                      #
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-sm font-semibold text-teal-800 uppercase tracking-wider"
-                    >
-                      Patient
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-sm font-semibold text-teal-800 uppercase tracking-wider"
-                    >
-                      Contact
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-left text-sm font-semibold text-teal-800 uppercase tracking-wider"
-                    >
-                      Appointments
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((user, index) => (
-                    <tr
-                      key={user._id}
-                      className="hover:bg-teal-50/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {index + 1}
-                      </td>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 font-medium">
+                {filteredPatients.length} patient
+                {filteredPatients.length !== 1 && "s"}
+              </span>
 
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="shrink-0 h-12 w-12">
-                            <img
-                              className="h-12 w-12 rounded-full object-cover border-2 border-teal-100"
-                              src={
-                                user.image ||
-                                "https://i.ibb.co/33gs5fP/user.png"
-                              }
-                              alt={user.name || "Patient"}
-                            />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.name || "—"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
+              <button
+                onClick={fetchData}
+                className="btn btn-outline btn-sm gap-2"
+              >
+                <RefreshCw size={16} />
+                Refresh
+              </button>
+            </div>
+          </div>
 
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {user.email || "—"}
-                      </td>
+          {/* Search Bar */}
+          <div className="mb-8">
+            <div className="relative max-w-md">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input input-bordered w-full pl-10 pr-10"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          </div>
 
-                      <td className="px-6 py-4">
-                        <div className="space-y-3 max-w-2xl">
-                          {user.appointments?.length > 0 ? (
-                            user.appointments.map((appointment, idx) => (
-                              <div
-                                key={idx}
-                                className="p-3 bg-white rounded-lg border border-teal-100 shadow-sm hover:shadow transition-shadow"
-                              >
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm font-medium text-teal-800">
-                                    {appointment.doctorName || "Unknown Doctor"}
-                                  </span>
-                                  <span
-                                    className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                                      appointment.isAppointed
-                                        ? "bg-green-100 text-green-800 border border-green-200"
-                                        : "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                                    }`}
-                                  >
-                                    {appointment.isAppointed
-                                      ? "Confirmed"
-                                      : "Pending"}
-                                  </span>
-                                </div>
-                                <div className="text-sm text-gray-600 space-y-0.5">
-                                  <div>{appointment.date}</div>
-                                  <div>{appointment.time}</div>
+          {/* Table */}
+          {filteredPatients.length === 0 ? (
+            <div className="bg-white rounded-xl shadow border p-12 text-center text-gray-500">
+              No patients found matching your search.
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow border overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th className="w-12">#</th>
+                      <th>Patient</th>
+                      <th>Contact</th>
+                      <th>Appointments</th>
+                      <th className="w-32 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedPatients.map((patient, idx) => {
+                      const apptCount = patient.appointments?.length || 0;
+
+                      return (
+                        <tr key={patient._id} className="hover">
+                          <td>{idx + 1}</td>
+
+                          <td>
+                            <div className="flex items-center gap-3">
+                              <div className="avatar">
+                                <div className="w-10 rounded-full">
+                                  <img
+                                    src={
+                                      patient.image ||
+                                      "https://i.ibb.co/33gs5fP/user.png"
+                                    }
+                                    alt={patient.name || "Patient"}
+                                  />
                                 </div>
                               </div>
-                            ))
-                          ) : (
-                            <div className="text-sm text-gray-500 italic py-2">
-                              No appointments found
+                              <div>
+                                <div className="font-medium">
+                                  {patient.name || "—"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  ID: {patient._id.slice(-8)}
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          </td>
 
-            {totalUsers === 0 && !loading && (
-              <div className="py-12 text-center text-gray-500">
-                No patients found.
+                          <td className="text-sm">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Mail size={14} className="text-gray-500" />
+                                {patient.email || "—"}
+                              </div>
+                              {patient.appointmentNumber && (
+                                <div className="flex items-center gap-2">
+                                  <Phone size={14} className="text-gray-500" />
+                                  {patient.appointmentNumber}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          <td>
+                            <div className="badge badge-outline badge-info gap-1">
+                              <Calendar size={14} />
+                              {apptCount}
+                            </div>
+                          </td>
+
+                          <td className="text-right">
+                            <Link
+                              href={`/dashboard/admin/patients/${patient._id}`}
+                              className="btn btn-sm btn-outline btn-primary"
+                            >
+                              View Details
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            )}
 
-            {/* New Pagination Component */}
-            {totalUsers > 0 && (
-              <Pagination
-                data={data}
-                itemsPerPage={itemsPerPage}
-                onPageDataChange={setPaginatedData}
-              />
-            )}
-          </div>
+              {/* Pagination */}
+              <div className="p-6 border-t bg-base-200/30">
+                <Pagination
+                  data={filteredPatients}
+                  itemsPerPage={itemsPerPage}
+                  onPageDataChange={setPaginatedPatients}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </RoleGuard>

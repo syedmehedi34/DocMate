@@ -7,8 +7,10 @@ export async function GET(req) {
   try {
     await dbConnect();
 
-    // Fetch users (only normal users, excluding doctors and admins)
-    const users = await User.find({ role: "user", isPatient: true });
+    // Fetch only normal users who are patients
+    const users = await User.find({ role: "user", isPatient: true }).select(
+      "-password",
+    );
 
     // Fetch appointments
     const appointments = await Appointment.find();
@@ -17,7 +19,8 @@ export async function GET(req) {
     const usersWithAppointments = users.map((user) => {
       // Filter appointments for each user
       const userAppointments = appointments.filter(
-        (appointment) => appointment.userId.toString() === user._id.toString(),
+        (appointment) =>
+          appointment.applicantUserId.toString() === user._id.toString(),
       );
 
       return {
