@@ -114,7 +114,7 @@ const DoctorAppointmentsPage = () => {
     setSortDate("");
   };
 
-  // Highlight function (একবারই define করা হলো)
+  // Highlight function
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
 
@@ -155,9 +155,9 @@ const DoctorAppointmentsPage = () => {
 
   return (
     <RoleGuard allowedRoles={["doctor"]}>
-      <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
         {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
             Pending Appointment Requests
           </h2>
@@ -178,7 +178,7 @@ const DoctorAppointmentsPage = () => {
         </div>
 
         {/* Search + Sort Controls */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4 text-sm">
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

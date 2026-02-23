@@ -5,9 +5,12 @@ import RoleGuard from "../../../components/RoleGuard";
 export default function DoctorHome() {
   return (
     <RoleGuard allowedRoles={["doctor"]}>
-      <div>
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
         <h1 className="text-3xl font-bold mb-4">Doctor Dashboard Home</h1>
-        <p>Welcome, doctor. Check your appointments and patient list from the sidebar.</p>
+        <p>
+          Welcome, doctor. Check your appointments and patient list from the
+          sidebar.
+        </p>
       </div>
     </RoleGuard>
   );

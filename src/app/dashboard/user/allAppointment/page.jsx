@@ -156,7 +156,7 @@ const AllAppointmentsPage = () => {
 
   return (
     <RoleGuard allowedRoles={["user"]}>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">

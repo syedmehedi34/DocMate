@@ -9,9 +9,13 @@ export default function UserHome() {
 
   return (
     <RoleGuard allowedRoles={["user"]}>
-      <div>
-        <p className="text-4xl mb-5 text-center font-semibold">Welcome {name ? name : "User"}!</p>
-        <p className="text-center text-lg text-gray-600">View your profile and appointments using the sidebar menu.</p>
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
+        <p className="text-4xl mb-5 text-center font-semibold">
+          Welcome {name ? name : "User"}!
+        </p>
+        <p className="text-center text-lg text-gray-600">
+          View your profile and appointments using the sidebar menu.
+        </p>
       </div>
     </RoleGuard>
   );

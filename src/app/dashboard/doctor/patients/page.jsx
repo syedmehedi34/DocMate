@@ -75,7 +75,7 @@ const DoctorPatientsPage = () => {
     setSearchTerm("");
   };
 
-  // Highlight function — match করা অংশকে mark করে
+  // Highlight function
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
 
@@ -114,9 +114,9 @@ const DoctorPatientsPage = () => {
 
   return (
     <RoleGuard allowedRoles={["doctor"]}>
-      <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
         {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
             My Patients
           </h2>
@@ -138,7 +138,7 @@ const DoctorPatientsPage = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="mb-8 relative max-w-md">
+        <div className="mb-6 relative max-w-md text-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
           </div>

@@ -82,7 +82,7 @@ const DoctorPage = () => {
     setFilteredDoctors(result);
   }, [searchTerm, sortSpeciality, doctors]);
 
-  // Highlight function (এখানে define করা হলো — scope ঠিক)
+  // Highlight function
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
 
@@ -223,7 +223,7 @@ const DoctorPage = () => {
 
   return (
     <RoleGuard allowedRoles={["user"]}>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="container mx-auto px-4 py-4 max-w-6xl">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">

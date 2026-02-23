@@ -71,7 +71,7 @@ export default function LoginPage() {
           errorMessage =
             "Invalid credentials. Please check your email and password.";
         } else if (result.error) {
-          errorMessage = result.error; // অন্য কোনো custom error হলে
+          errorMessage = result.error;
         }
 
         Swal.fire({
@@ -95,7 +95,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Optional subtle background pattern or overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
 
@@ -223,7 +223,7 @@ export default function LoginPage() {
 
             {/* Right: Hero Image with overlay */}
             <div className="relative hidden md:block md:flex-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-teal-500/20 mix-blend-multiply" />
+              <div className="absolute inset-0 bg-linear-to-r from-blue-600/30 to-teal-500/20 mix-blend-multiply" />
               <Image
                 src="/login.jpg"
                 alt="DocMate Healthcare"
