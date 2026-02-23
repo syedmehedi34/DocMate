@@ -115,6 +115,7 @@ export default function AdminHome() {
   };
 
   const handleEdit = (user) => {
+    document.getElementById("editing_modal").showModal();
     setEditingUser(user);
     setFormData({
       name: user.name || "",
@@ -133,6 +134,7 @@ export default function AdminHome() {
   };
 
   const handleUpdate = async (e) => {
+    document.getElementById("editing_modal").close();
     e.preventDefault();
     if (!editingUser) return;
 
@@ -203,7 +205,6 @@ export default function AdminHome() {
             </button>
           </div>
         </div>
-
         {/* Search + Filter Controls */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4 text-sm">
           {/* Search Bar */}
@@ -259,7 +260,6 @@ export default function AdminHome() {
             )}
           </div>
         </div>
-
         {/* Table / Empty state */}
         {filteredUsers.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 shadow-sm">
@@ -414,9 +414,8 @@ export default function AdminHome() {
             </table>
           </div>
         )}
-
         {/* Edit Modal */}
-        {editingUser && (
+        {/* {editingUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-5">
@@ -497,7 +496,110 @@ export default function AdminHome() {
               </form>
             </div>
           </div>
-        )}
+        )} */}
+        {/* MODAL */}
+        <dialog
+          id="editing_modal"
+          className="modal modal-bottom sm:modal-middle"
+        >
+          <div className="modal-box max-w-lg bg-base-100 shadow-xl rounded-xl border border-base-200">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold text-base-content">Edit User</h3>
+              <form method="dialog">
+                {/* This X button closes the modal */}
+                <button className="btn btn-ghost btn-sm btn-circle">
+                  <X size={20} />
+                </button>
+              </form>
+            </div>
+
+            <form onSubmit={handleUpdate} className="space-y-5">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Full Name</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter full name"
+                  className="input input-bordered w-full focus:input-primary"
+                  required
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Email</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  disabled
+                  className="input input-bordered w-full bg-base-200 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium">Role</span>
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="select select-bordered w-full focus:select-primary"
+                >
+                  <option value="user">User / Patient</option>
+                  <option value="doctor">Doctor</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+
+              <div className="form-control">
+                <label className="label cursor-pointer justify-start gap-3">
+                  <input
+                    type="checkbox"
+                    name="isPatient"
+                    checked={formData.isPatient}
+                    onChange={handleChange}
+                    className="checkbox checkbox-primary"
+                  />
+                  <span className="label-text font-medium">
+                    Mark as Patient
+                  </span>
+                </label>
+              </div>
+
+              <div className="modal-action mt-8 flex justify-end gap-3">
+                {/* Cancel button – closes modal without saving */}
+                <button
+                  type="button"
+                  className="btn btn-neutral px-6"
+                  onClick={() => {
+                    const modal = document.getElementById("editing_modal");
+                    if (modal) modal.close();
+                  }}
+                >
+                  Cancel
+                </button>
+
+                {/* Submit button */}
+                <button type="submit" className="btn btn-primary px-6">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Backdrop click closes modal */}
+          <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+        ;
       </div>
     </RoleGuard>
   );
