@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 import RoleGuard from "../../../components/RoleGuard";
 import { Search, X, RefreshCw, ArrowUpDown } from "lucide-react";
 import toast from "react-hot-toast";
+import Pagination from "../../../../components/Pagination";
 
 export default function AdminHome() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [paginatedUsers, setPaginatedUsers] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState(""); // "" for all, or "admin", "doctor", "user"
   const [uniqueRoles, setUniqueRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const itemsPerPage = 5;
 
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -175,13 +179,10 @@ export default function AdminHome() {
           boxShadow: "none",
           border: "none",
         },
-        // slightly delay appearance so it doesn't feel jumpy
-        // delay: 100,
       },
     );
   };
 
-  //
   const handleEdit = (user) => {
     document.getElementById("editing_modal").showModal();
     setEditingUser(user);
@@ -273,6 +274,7 @@ export default function AdminHome() {
             </button>
           </div>
         </div>
+
         {/* Search + Filter Controls */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4 text-sm">
           {/* Search Bar */}
@@ -299,7 +301,7 @@ export default function AdminHome() {
             )}
           </div>
 
-          {/* Filter by Role Dropdown (like Sort by Date in DoctorAppointmentsPage) */}
+          {/* Filter by Role Dropdown */}
           <div className="relative w-full sm:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <ArrowUpDown className="h-5 w-5 text-gray-400" />
@@ -328,6 +330,7 @@ export default function AdminHome() {
             )}
           </div>
         </div>
+
         {/* Table / Empty state */}
         {filteredUsers.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 shadow-sm">
@@ -352,219 +355,148 @@ export default function AdminHome() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto shadow-sm ring-1 ring-black/5 rounded-xl">
-            <table className="min-w-full divide-y divide-gray-200 bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    #
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Avatar
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden md:table-cell px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Email
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Role
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden md:table-cell px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Patient
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {filteredUsers.map((user, index) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-blue-50/40 transition-colors duration-150"
-                  >
-                    <td className="px-4 py-5 sm:px-6 text-gray-700">
-                      {index + 1}
-                    </td>
-
-                    <td className="px-4 py-5 sm:px-6">
-                      <div className="h-10 w-10">
-                        <img
-                          className="h-10 w-10 rounded-full object-cover border border-gray-200"
-                          src={
-                            user.image || "https://i.ibb.co/33gs5fP/user.png"
-                          }
-                          alt={user.name || "User"}
-                        />
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-5 sm:px-6">
-                      <div
-                        className="font-medium text-gray-900"
-                        dangerouslySetInnerHTML={{
-                          __html: highlightText(user.name || "—"),
-                        }}
-                      />
-                    </td>
-
-                    <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: highlightText(user.email || "—"),
-                        }}
-                      />
-                    </td>
-
-                    <td className="px-4 py-5 sm:px-6">
-                      <span
-                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.role === "admin"
-                            ? "bg-purple-100 text-purple-800"
-                            : user.role === "doctor"
-                              ? "bg-teal-100 text-teal-800"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {user.role || "user"}
-                      </span>
-                    </td>
-
-                    <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
-                      {user.isPatient ? (
-                        <span className="text-green-600 font-medium">Yes</span>
-                      ) : (
-                        <span className="text-gray-500">No</span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-5 sm:px-6 text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="text-blue-600 hover:text-blue-800 mr-4 cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        className="text-red-600 hover:text-red-800 cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-x-auto shadow-sm ring-1 ring-black/5 rounded-xl">
+              <table className="min-w-full divide-y divide-gray-200 bg-white">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      #
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Avatar
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="hidden md:table-cell px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Email
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Role
+                    </th>
+                    <th
+                      scope="col"
+                      className="hidden md:table-cell px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Patient
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {/* Edit Modal */}
-        {/* {editingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-5">
-                Edit User
-              </h3>
+                </thead>
 
-              <form onSubmit={handleUpdate} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {paginatedUsers.map((user, index) => (
+                    <tr
+                      key={user._id}
+                      className="hover:bg-blue-50/40 transition-colors duration-150"
+                    >
+                      <td className="px-4 py-5 sm:px-6 text-gray-700">
+                        {index + 1}
+                      </td>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    disabled
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
-                  />
-                </div>
+                      <td className="px-4 py-5 sm:px-6">
+                        <div className="h-10 w-10">
+                          <img
+                            className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                            src={
+                              user.image || "https://i.ibb.co/33gs5fP/user.png"
+                            }
+                            alt={user.name || "User"}
+                          />
+                        </div>
+                      </td>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Role
-                  </label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="user">User / Patient</option>
-                    <option value="doctor">Doctor</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
+                      <td className="px-4 py-5 sm:px-6">
+                        <div
+                          className="font-medium text-gray-900"
+                          dangerouslySetInnerHTML={{
+                            __html: highlightText(user.name || "—"),
+                          }}
+                        />
+                      </td>
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="isPatient"
-                    checked={formData.isPatient}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm text-gray-700">
-                    Mark as Patient
-                  </label>
-                </div>
+                      <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: highlightText(user.email || "—"),
+                          }}
+                        />
+                      </td>
 
-                <div className="flex justify-end gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setEditingUser(null)}
-                    className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    Update User
-                  </button>
-                </div>
-              </form>
+                      <td className="px-4 py-5 sm:px-6">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.role === "admin"
+                              ? "bg-purple-100 text-purple-800"
+                              : user.role === "doctor"
+                                ? "bg-teal-100 text-teal-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {user.role || "user"}
+                        </span>
+                      </td>
+
+                      <td className="hidden md:table-cell px-4 py-5 sm:px-6 text-sm text-gray-700">
+                        {user.isPatient ? (
+                          <span className="text-green-600 font-medium">
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">No</span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-5 sm:px-6 text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="text-blue-600 hover:text-blue-800 mr-4 cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-        )} */}
+
+            {/* Added Pagination */}
+            <Pagination
+              data={filteredUsers}
+              itemsPerPage={itemsPerPage}
+              onPageDataChange={setPaginatedUsers}
+            />
+          </>
+        )}
+
         {/* MODAL */}
         <dialog
           id="editing_modal"
@@ -667,7 +599,6 @@ export default function AdminHome() {
             <button>close</button>
           </form>
         </dialog>
-        ;
       </div>
     </RoleGuard>
   );

@@ -92,6 +92,7 @@ const Pagination = ({ data = [], itemsPerPage = 6, onPageDataChange }) => {
 export default Pagination;
 
 // const [paginatedDoctors, setPaginatedDoctors] = useState([]);
+// const itemsPerPage = 10;
 {
   /* <Pagination
   data={filteredDoctors}
