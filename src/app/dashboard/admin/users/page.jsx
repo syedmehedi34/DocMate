@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import RoleGuard from "../../../components/RoleGuard";
 import { Search, X, RefreshCw, ArrowUpDown } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AdminHome() {
   const [users, setUsers] = useState([]);
@@ -24,43 +25,7 @@ export default function AdminHome() {
     fetchUsers();
   }, []);
 
-  // Compute unique roles
-  useEffect(() => {
-    if (users.length > 0) {
-      const roles = [...new Set(users.map((u) => u.role || "user"))];
-      // Optional: sort by custom order
-      const roleOrder = { admin: 1, doctor: 2, user: 3 };
-      const sortedRoles = roles.sort(
-        (a, b) => (roleOrder[a] ?? 999) - (roleOrder[b] ?? 999),
-      );
-      setUniqueRoles(sortedRoles);
-    }
-  }, [users]);
-
-  // Unified filter (search + role filter, same as DoctorAppointmentsPage)
-  useEffect(() => {
-    let result = [...users];
-
-    // A. Search filter
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().trim();
-      result = result.filter((user) => {
-        const name = (user.name || "").toLowerCase();
-        const email = (user.email || "").toLowerCase();
-        return name.includes(term) || email.includes(term);
-      });
-    }
-
-    // B. Role filter (like date filter in DoctorAppointmentsPage)
-    if (selectedRole) {
-      result = result.filter(
-        (u) => (u.role || "user").toLowerCase() === selectedRole.toLowerCase(),
-      );
-    }
-
-    setFilteredUsers(result);
-  }, [users, searchTerm, selectedRole]);
-
+  // fetch all users
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
@@ -84,9 +49,47 @@ export default function AdminHome() {
     }
   };
 
+  // sorting by role [optional]
+  useEffect(() => {
+    if (users.length > 0) {
+      const roles = [...new Set(users.map((u) => u.role || "user"))];
+      // Optional: sort by custom order
+      const roleOrder = { admin: 1, doctor: 2, user: 3 };
+      const sortedRoles = roles.sort(
+        (a, b) => (roleOrder[a] ?? 999) - (roleOrder[b] ?? 999),
+      );
+      setUniqueRoles(sortedRoles);
+    }
+  }, [users]);
+
+  // filter and search
+  useEffect(() => {
+    let result = [...users];
+
+    // A. Search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      result = result.filter((user) => {
+        const name = (user.name || "").toLowerCase();
+        const email = (user.email || "").toLowerCase();
+        return name.includes(term) || email.includes(term);
+      });
+    }
+
+    // B. Role filter (like date filter in DoctorAppointmentsPage)
+    if (selectedRole) {
+      result = result.filter(
+        (u) => (u.role || "user").toLowerCase() === selectedRole.toLowerCase(),
+      );
+    }
+
+    setFilteredUsers(result);
+  }, [users, searchTerm, selectedRole]);
+
   const clearSearch = () => setSearchTerm("");
   const clearFilter = () => setSelectedRole("");
 
+  //  highlightText on search
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
 
@@ -101,19 +104,84 @@ export default function AdminHome() {
     );
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
-      setUsers((prev) => prev.filter((u) => u._id !== id));
-      // filteredUsers will auto-update via useEffect
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      alert("Failed to delete user");
-    }
+  //  delete function with confirmation toast
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="min-w-90 max-w-105 rounded-xl bg-white shadow-xl border border-gray-200/80 overflow-hidden">
+          {/* Header / Message area */}
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50/40">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+
+                const loadingId = toast.loading("Deleting user…", {
+                  style: { borderRadius: "10px" },
+                });
+
+                try {
+                  const res = await fetch(`/api/users/${id}`, {
+                    method: "DELETE",
+                  });
+
+                  if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || "Delete failed");
+                  }
+
+                  setUsers((prev) => prev.filter((u) => u._id !== id));
+
+                  toast.success("User deleted successfully", {
+                    id: loadingId,
+                    duration: 2000,
+                  });
+                } catch (err) {
+                  console.error("Delete failed:", err);
+                  toast.error(err.message || "Failed to delete user", {
+                    id: loadingId,
+                    duration: 5000,
+                  });
+                }
+              }}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition-colors shadow-sm"
+            >
+              Delete User
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+        // slightly delay appearance so it doesn't feel jumpy
+        // delay: 100,
+      },
+    );
   };
 
+  //
   const handleEdit = (user) => {
     document.getElementById("editing_modal").showModal();
     setEditingUser(user);
@@ -550,7 +618,7 @@ export default function AdminHome() {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="select select-bordered w-full focus:select-primary"
+                  className="pl-3 select select-bordered w-full focus:select-primary"
                 >
                   <option value="user">User / Patient</option>
                   <option value="doctor">Doctor</option>

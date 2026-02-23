@@ -22,7 +22,7 @@ export async function GET(req, { params }) {
   }
 }
 
-// Update user by ID (PUT request)
+// Update user by ID (PUT request) - [admin - All Users, ]
 export async function PUT(req, { params }) {
   await dbConnect();
   try {
@@ -52,11 +52,12 @@ export async function PUT(req, { params }) {
   }
 }
 
-// Delete user by ID (DELETE request)
+// DELETE user by ID (DELETE request) - [admin - All Users, ]
 export async function DELETE(req, { params }) {
   await dbConnect();
   try {
     const deletedUser = await User.findByIdAndDelete(params.id);
+
     if (!deletedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
