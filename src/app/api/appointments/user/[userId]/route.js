@@ -1,3 +1,4 @@
+// api/appointments/user/[userId]/route.js
 import { NextResponse } from "next/server";
 import dbConnect from "../../../../../../lib/mongodb";
 import Appointment from "../../../../../../models/Appointment";
@@ -6,24 +7,16 @@ export async function GET(req, { params }) {
   await dbConnect();
 
   try {
-    // Await params before destructuring userId
-    const { userId } = await params;
+    const { userId } = params; // no need for await here
 
-    // Fetch all appointments for the user
     const appointments = await Appointment.find({
       applicantUserId: userId,
     }).sort({
       createdAt: -1,
     });
 
-    if (appointments.length === 0) {
-      return NextResponse.json(
-        { message: "No appointments found" },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json(appointments, { status: 200 });
+    // Always return 200 + array (empty is fine)
+    return NextResponse.json(appointments || [], { status: 200 });
   } catch (error) {
     console.error("Error fetching appointments:", error);
     return NextResponse.json(

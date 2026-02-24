@@ -121,7 +121,7 @@ export default function PatientDetailsPage() {
         {/* Main Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200/70 overflow-hidden mb-10">
           {/* Cover + Avatar */}
-          <div className="relative h-48 bg-gradient-to-r from-teal-600 to-teal-500">
+          <div className="relative h-48 bg-linear-to-r from-teal-600 to-teal-500">
             <div className="absolute -bottom-12 left-6 sm:left-8">
               <div className="avatar">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full ring-4 ring-white shadow-xl object-cover border border-gray-200">
@@ -227,7 +227,7 @@ export default function PatientDetailsPage() {
                     {/* Numbering + Doctor Info */}
                     <div className="flex items-start gap-3 sm:gap-4">
                       {/* Number badge */}
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="shrink-0 mt-1">
                         <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-semibold text-sm ring-1 ring-teal-200/70">
                           #{index + 1}
                         </span>
@@ -313,12 +313,12 @@ export default function PatientDetailsPage() {
 function InfoItem({ icon, label, value }) {
   return (
     <div className="flex items-start gap-3.5 py-1">
-      <div className="text-teal-600 mt-0.5 flex-shrink-0">{icon}</div>
+      <div className="text-teal-600 mt-0.5 shrink-0">{icon}</div>
       <div className="flex-1 min-w-0">
         <div className="text-xs uppercase tracking-wide text-gray-500 font-medium">
           {label}
         </div>
-        <div className="font-medium text-gray-900 mt-0.5 break-words">
+        <div className="font-medium text-gray-900 mt-0.5 wrap-break-word">
           {value}
         </div>
       </div>
