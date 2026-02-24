@@ -49,31 +49,32 @@ export async function POST(req) {
       );
     }
 
-    // Optional: duplicate চেক (যদি একই দিনে একই পেশেন্ট একই ডাক্তারের সাথে বুক করতে না পারে)
-    const existing = await Appointment.findOne({
-      doctorId,
-      patientPhone,
-      appointmentDate,
-      // status: { $ne: "cancelled" }   // ← cancelled হলে আবার বুক করতে দিতে চাইলে এটা বাদ দাও
-    });
+    // ! checking duplicate appointment
+    // const activeStatuses = ["pending", "confirmed", "rejected", "completed"];
+    // const existing = await Appointment.findOne({
+    //   doctorId,
+    //   patientPhone,
+    //   appointmentDate,
+    //   status: { $in: activeStatuses },
+    // });
 
-    if (existing) {
-      return NextResponse.json(
-        {
-          message:
-            "An appointment already exists for this patient with the same doctor on the selected date.",
-        },
-        { status: 409 },
-      );
-    }
+    // if (existing) {
+    //   return NextResponse.json(
+    //     {
+    //       message:
+    //         "An appointment already exists for this patient with the same doctor on the selected date.",
+    //     },
+    //     { status: 409 },
+    //   );
+    // }
 
-    // নতুন অ্যাপয়েন্টমেন্ট তৈরি
+    // make new appointment
     const newAppointment = new Appointment({
       doctorId,
       doctorName,
       doctorEmail,
       applicantUserId,
-      applicantName: applicantUserName, // স্কিমায় applicantName
+      applicantName: applicantUserName,
       applicantEmail: applicantUserEmail,
       patientName,
       patientAge: patientAge ? Number(patientAge) : undefined,
@@ -89,8 +90,6 @@ export async function POST(req) {
       isAppointmentConfirmed: Boolean(isAppointmentConfirmed),
       status: isAppointmentConfirmed ? "confirmed" : "pending",
     });
-
-    console.log("Saving appointment:", newAppointment.toObject());
 
     await newAppointment.save();
 

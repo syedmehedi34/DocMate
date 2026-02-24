@@ -9,13 +9,10 @@ import {
   X,
   RefreshCw,
   Clock,
-  CheckCircle,
-  XCircle,
-  Ban,
-  CheckSquare,
   ArrowDownRight,
+  ArrowDownUp,
 } from "lucide-react";
-import Link from "next/link"; // only if needed — not used here but kept for future
+import toast from "react-hot-toast";
 
 const AllAppointmentsPage = () => {
   const { data: session } = useSession();
@@ -33,9 +30,7 @@ const AllAppointmentsPage = () => {
   const [error, setError] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  // ───────────────────────────────────────────────
   // Highlight matching text
-  // ───────────────────────────────────────────────
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
 
@@ -48,6 +43,7 @@ const AllAppointmentsPage = () => {
     );
   };
 
+  // fetch user's appointments
   const fetchAppointments = async () => {
     if (!session?.user?.id) return;
 
@@ -78,15 +74,17 @@ const AllAppointmentsPage = () => {
     else setLoading(false);
   }, [session]);
 
-  // Search + status filter (mirrors doctors page logic)
+  // Search + status filter
   useEffect(() => {
     let result = [...appointments];
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
-      result = result.filter((appt) =>
-        (appt.doctorName || "").toLowerCase().includes(term),
-      );
+      result = result.filter((appt) => {
+        const doctorName = (appt.doctorName || "").toLowerCase();
+        const doctorEmail = (appt.doctorEmail || "").toLowerCase();
+        return doctorName.includes(term) || doctorEmail.includes(term);
+      });
     }
 
     if (selectedStatus) {
@@ -101,29 +99,88 @@ const AllAppointmentsPage = () => {
   const clearSearch = () => setSearchTerm("");
   const clearFilter = () => setSelectedStatus("");
 
-  const handleCancelAppointment = async (appointmentId) => {
-    if (!window.confirm("Are you sure you want to cancel this appointment?"))
-      return;
+  const handleCancelAppointment = (appointmentId) => {
+    toast(
+      (t) => (
+        <div className="min-w-90 max-w-105 rounded-xl bg-white shadow-xl border border-gray-200/80 overflow-hidden">
+          {/* Header / Message area */}
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Cancel Appointment
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              Are you sure you want to cancel this appointment? This action
+              cannot be undone.
+            </p>
+          </div>
 
-    try {
-      const res = await fetch(`/api/appointments/${appointmentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
+          {/* Buttons */}
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50/40">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
 
-      const data = await res.json();
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
 
-      if (res.ok) {
-        // toast.success("Appointment cancelled");  // ← add if you want
-        fetchAppointments();
-      } else {
-        alert(data.error || "Failed to cancel appointment");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong while cancelling.");
-    }
+                const loadingId = toast.loading("Cancelling appointment…", {
+                  style: { borderRadius: "10px" },
+                });
+
+                try {
+                  const res = await fetch(
+                    `/api/appointments/${appointmentId}`,
+                    {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ status: "cancelled" }),
+                    },
+                  );
+
+                  const data = await res.json();
+
+                  if (!res.ok) {
+                    throw new Error(
+                      data.error || "Failed to cancel appointment",
+                    );
+                  }
+
+                  fetchAppointments();
+
+                  toast.success("Appointment cancelled successfully", {
+                    id: loadingId,
+                    duration: 2000,
+                  });
+                } catch (err) {
+                  console.error("Cancel failed:", err);
+                  toast.error(err.message || "Failed to cancel appointment", {
+                    id: loadingId,
+                    duration: 5000,
+                  });
+                }
+              }}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition-colors shadow-sm"
+            >
+              Cancel Appointment
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+      },
+    );
   };
 
   const openModal = (appt) => {
@@ -162,7 +219,7 @@ const AllAppointmentsPage = () => {
   return (
     <RoleGuard allowedRoles={["user"]}>
       <div className="container mx-auto px-4 py-4 max-w-6xl">
-        {/* Header ─ same as doctors page */}
+        {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
             My Appointments
@@ -183,16 +240,16 @@ const AllAppointmentsPage = () => {
           </div>
         </div>
 
-        {/* Search + Filter ─ identical layout */}
+        {/* Search + Filter */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4 text-sm">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-4 w-4 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search by doctor name..."
+              placeholder="Search by doctor name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder-gray-400"
@@ -202,7 +259,7 @@ const AllAppointmentsPage = () => {
                 onClick={clearSearch}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -210,7 +267,7 @@ const AllAppointmentsPage = () => {
           {/* Status Filter */}
           <div className="relative w-full sm:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Clock className="h-5 w-5 text-gray-400" />
+              <ArrowDownUp className="h-4 w-4 text-gray-400" />
             </div>
             <select
               value={selectedStatus}
@@ -235,7 +292,7 @@ const AllAppointmentsPage = () => {
           </div>
         </div>
 
-        {/* Table / Empty state ─ matched style */}
+        {/* Table / Empty state */}
         {filteredAppointments.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 shadow-sm">
             <p className="text-lg">
@@ -315,7 +372,11 @@ const AllAppointmentsPage = () => {
                           }}
                         />
                         <div className="text-sm text-gray-600 mt-0.5">
-                          {appt.doctorEmail || "—"}
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: highlightText(appt.doctorEmail || "—"),
+                            }}
+                          />
                         </div>
                       </td>
 
@@ -348,7 +409,7 @@ const AllAppointmentsPage = () => {
                         <div className="flex items-center justify-end gap-4">
                           <button
                             onClick={() => openModal(appt)}
-                            className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
                           >
                             Details{" "}
                             <ArrowDownRight size={17} className="-rotate-90" />
@@ -360,7 +421,7 @@ const AllAppointmentsPage = () => {
                                 onClick={() =>
                                   handleCancelAppointment(appt._id)
                                 }
-                                className="text-red-600 hover:text-red-800"
+                                className="text-red-600 hover:text-red-800 cursor-pointer"
                               >
                                 Cancel
                               </button>
@@ -381,9 +442,7 @@ const AllAppointmentsPage = () => {
           </>
         )}
 
-        {/* ───────────────────────────────────────────────
-            Modal (cleaned up a bit, same tailwind classes)
-        ─────────────────────────────────────────────── */}
+        {/* Modal */}
         <dialog id="appointment_modal" className="modal">
           <div className="modal-box max-w-2xl w-11/12">
             <div className="flex justify-between items-center border-b pb-4 mb-6">

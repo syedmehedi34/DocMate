@@ -7,7 +7,7 @@ export async function GET(req, { params }) {
   await dbConnect();
 
   try {
-    const { userId } = params; // no need for await here
+    const { userId } = await params;
 
     const appointments = await Appointment.find({
       applicantUserId: userId,
