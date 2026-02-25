@@ -348,9 +348,9 @@ const DoctorPage = () => {
                         <Link href={`/dashboard/admin/doctors/${doctor._id}`}>
                           <button
                             onClick={() => handleViewDetails(doctor)}
-                            className="text-blue-600 hover:text-blue-800 cursor-pointer flex items-center gap-0.5"
+                            className="btn btn-sm bg-blue-700 hover:bg-blue-800 rounded-lg text-white transition-all duration-150 shadow-sm hover:shadow"
                           >
-                            Details{" "}
+                            Details
                             <ArrowDownRight size={17} className="-rotate-90" />
                           </button>
                         </Link>

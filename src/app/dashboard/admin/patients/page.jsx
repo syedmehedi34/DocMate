@@ -294,8 +294,8 @@ const UserPage = () => {
                           <Link
                             href={`/dashboard/admin/patients/${patient._id}`}
                           >
-                            <button className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer">
-                              Details{" "}
+                            <button className="btn btn-sm bg-blue-700 hover:bg-blue-800 rounded-lg text-white transition-all duration-150 shadow-sm hover:shadow">
+                              Details
                               <ArrowDownRight
                                 size={17}
                                 className="-rotate-90"

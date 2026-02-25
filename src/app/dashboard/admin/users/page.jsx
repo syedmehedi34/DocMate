@@ -280,7 +280,7 @@ export default function AdminHome() {
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-4 w-4 text-gray-400" />
             </div>
 
             <input
@@ -296,7 +296,7 @@ export default function AdminHome() {
                 onClick={clearSearch}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -304,7 +304,7 @@ export default function AdminHome() {
           {/* Filter by Role Dropdown */}
           <div className="relative w-full sm:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <ArrowUpDown className="h-5 w-5 text-gray-400" />
+              <ArrowUpDown className="h-4 w-4 text-gray-400" />
             </div>
 
             <select
@@ -420,7 +420,9 @@ export default function AdminHome() {
                           <img
                             className="h-10 w-10 rounded-full object-cover border border-gray-200"
                             src={
-                              user.image || "https://i.ibb.co/33gs5fP/user.png"
+                              // need to change doctorImageUrl name later
+                              user.doctorImageUrl ||
+                              "https://i.ibb.co/33gs5fP/user.png"
                             }
                             alt={user.name || "User"}
                           />
@@ -471,13 +473,13 @@ export default function AdminHome() {
                       <td className="px-4 py-5 sm:px-6 text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="text-blue-600 hover:text-blue-800 mr-4 cursor-pointer"
+                          className="btn btn-sm bg-blue-700 hover:bg-blue-800 rounded-lg text-white transition-all duration-150 shadow-sm hover:shadow"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(user._id)}
-                          className="text-red-600 hover:text-red-800 cursor-pointer"
+                          className="btn btn-sm  bg-red-700 hover:bg-red-800 rounded-lg text-white transition-all duration-150 shadow-sm hover:shadow"
                         >
                           Delete
                         </button>

@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import RoleGuard from "@/app/components/RoleGuard";
-import { Search, X, RefreshCw, Calendar } from "lucide-react";
+import { Search, X, RefreshCw, Calendar, ArrowDownUp } from "lucide-react";
+import toast from "react-hot-toast";
 
 const DoctorAppointmentsPage = () => {
   const { data: session } = useSession();
@@ -81,29 +82,97 @@ const DoctorAppointmentsPage = () => {
     }
   };
 
-  const handleDecision = async (appointmentId, approved) => {
-    try {
-      const status = approved ? "confirmed" : "rejected";
+  // approve or reject handler
+  const handleDecision = (appointmentId, approved) => {
+    const actionText = approved ? "Approve" : "Reject";
+    const successText = approved ? "approved" : "rejected";
 
-      const res = await fetch(`/api/appointments/${appointmentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+    toast(
+      (t) => (
+        <div className="min-w-90 max-w-105 rounded-xl bg-white shadow-xl border border-gray-200/80 overflow-hidden">
+          {/* Header / Message area */}
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {actionText} Appointment
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              Are you sure you want to {actionText.toLowerCase()} this
+              appointment? This action cannot be undone.
+            </p>
+          </div>
 
-      if (res.ok) {
-        alert(
-          `Appointment ${approved ? "approved" : "rejected"} successfully.`,
-        );
-        fetchPendingAppointments();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to update status.");
-      }
-    } catch (error) {
-      console.error("Decision error:", error);
-      alert("Something went wrong. Please try again.");
-    }
+          {/* Buttons */}
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50/40">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+
+                const loadingId = toast.loading(
+                  `${actionText}ing appointment…`,
+                  { style: { borderRadius: "10px" } },
+                );
+
+                try {
+                  const status = approved ? "confirmed" : "rejected";
+
+                  const res = await fetch(
+                    `/api/appointments/${appointmentId}`,
+                    {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ status }),
+                    },
+                  );
+
+                  if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || "Failed to update status");
+                  }
+
+                  toast.success(`Appointment ${successText} successfully`, {
+                    id: loadingId,
+                    duration: 2500,
+                  });
+
+                  // UI update
+                  fetchPendingAppointments();
+                } catch (err) {
+                  console.error("Decision failed:", err);
+                  toast.error(err.message || "Failed to update appointment", {
+                    id: loadingId,
+                    duration: 5000,
+                  });
+                }
+              }}
+              className={`px-5 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors shadow-sm ${
+                approved
+                  ? "bg-green-600 hover:bg-green-700 focus:ring-green-400"
+                  : "bg-red-600 hover:bg-red-700 focus:ring-red-400"
+              }`}
+            >
+              {actionText} Appointment
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+      },
+    );
   };
 
   const clearSearch = () => {
@@ -182,7 +251,7 @@ const DoctorAppointmentsPage = () => {
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-4 w-4 text-gray-400" />
             </div>
 
             <input
@@ -198,7 +267,7 @@ const DoctorAppointmentsPage = () => {
                 onClick={clearSearch}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -206,7 +275,7 @@ const DoctorAppointmentsPage = () => {
           {/* Sort by Date Dropdown */}
           <div className="relative w-full sm:w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Calendar className="h-5 w-5 text-gray-400" />
+              <ArrowDownUp className="h-4 w-4 text-gray-400" />
             </div>
 
             <select
