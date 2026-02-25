@@ -112,6 +112,7 @@ const UserSchema = new mongoose.Schema(
     specializations: {
       type: [String],
       default: [],
+      trim: true,
     },
     joinedHospitals: {
       type: [String],

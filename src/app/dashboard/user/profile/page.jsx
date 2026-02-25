@@ -151,7 +151,7 @@ const PatientProfileDashboard = () => {
     );
   };
 
-  const displayValue = (value) => value ?? "—"; // ?? দিয়ে null/undefined handle
+  const displayValue = (value) => value ?? "—";
 
   return (
     <div className="container mx-auto px-4 py-4 max-w-6xl">

@@ -20,6 +20,7 @@ import {
   Plus,
 } from "lucide-react";
 import useUserById from "@/hooks/useUserById";
+import toast from "react-hot-toast";
 
 const DoctorProfileDashboard = () => {
   const { user, isLoading, error } = useUserById();
@@ -60,9 +61,80 @@ const DoctorProfileDashboard = () => {
   };
 
   const saveChanges = () => {
-    console.log("Saving doctor data:", doctor);
-    alert("Changes saved (demo)");
-    setEditMode(false);
+    toast(
+      (t) => (
+        <div className="min-w-[320px] rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Save Changes?
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              This will update your doctor profile information. This action
+              cannot be undone without re-editing.
+            </p>
+          </div>
+
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+
+                const loadingId = toast.loading("Updating doctor profile...");
+
+                try {
+                  if (!doctor?._id) throw new Error("Doctor ID missing");
+
+                  const res = await fetch(`/api/users/${doctor._id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(doctor),
+                  });
+
+                  if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error || "Update failed");
+                  }
+
+                  const updated = await res.json();
+
+                  toast.success("Doctor profile updated successfully!", {
+                    id: loadingId,
+                  });
+
+                  setEditMode(false);
+                  setDoctor(updated); // latest server data দিয়ে state sync করা হলো
+                } catch (err) {
+                  toast.error(err.message || "Failed to update profile", {
+                    id: loadingId,
+                  });
+                  console.error("Doctor profile update error:", err);
+                }
+              }}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+      },
+    );
   };
 
   if (isLoading || !doctor) return <p className="p-6">Loading...</p>;
@@ -487,8 +559,7 @@ const DoctorProfileDashboard = () => {
                     className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-teal-500"
                   >
                     <option value="available">Available</option>
-                    <option value="busy">Busy</option>
-                    <option value="on leave">On Leave</option>
+                    <option value="on-leave">On Leave</option>
                   </select>
                 ) : (
                   <span className="text-teal-700 font-medium capitalize">
