@@ -72,3 +72,33 @@ export async function DELETE(req, { params }) {
     );
   }
 }
+
+// update user profile data (patch request) - [user - Profile, ]
+export async function PATCH(req, { params }) {
+  await dbConnect();
+  try {
+    const updates = await req.json();
+    // console.log(updates);
+
+    if (!params || !params.id) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(params.id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedUser, { status: 200 });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return NextResponse.json(
+      { error: "Failed to update user profile" },
+      { status: 500 },
+    );
+  }
+}

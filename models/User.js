@@ -200,8 +200,18 @@ const UserSchema = new mongoose.Schema(
       required: false,
     },
     emergencyContact: {
+      type: {
+        name: String,
+        relationship: String,
+        phone: String,
+      },
+      default: null,
+      required: false,
+    },
+    fullAddress: {
       type: String,
       default: "",
+      trim: true,
       required: false,
     },
   },

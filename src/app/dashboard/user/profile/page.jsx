@@ -8,14 +8,13 @@ import {
   Phone,
   Calendar,
   Heart,
-  Users,
-  IdCard,
   Edit2,
   Save,
   X,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import useUserById from "@/hooks/useUserById";
+import toast from "react-hot-toast";
 
 const PatientProfileDashboard = () => {
   const { data: session } = useSession();
@@ -28,23 +27,16 @@ const PatientProfileDashboard = () => {
     if (user) {
       setProfile({
         ...user,
-        // Editable / extendable fields
-        phone: user.phone || "",
+        userNumber: user.userNumber || "",
         fullAddress: user.fullAddress || "",
         bloodGroup: user.bloodGroup || "",
-        dateOfBirth: user.dateOfBirth || "",
-        maritalStatus: user.maritalStatus || "",
-        nationalId: user.nationalId || "",
+        dob: user.dob || "",
+        dateOfBirth: user.dateOfBirth || "", // ← date input-এর জন্য ""
         about: user.about || "",
-        emergencyContact: user.emergencyContact || {
-          name: "",
-          relationship: "",
-          phone: "",
-        },
-        secondaryContact: user.secondaryContact || {
-          name: "",
-          relationship: "",
-          phone: "",
+        emergencyContact: {
+          name: user.emergencyContact?.name || "",
+          relationship: user.emergencyContact?.relationship || "",
+          phone: user.emergencyContact?.phone || "",
         },
       });
     }
@@ -81,18 +73,85 @@ const PatientProfileDashboard = () => {
   const handleNestedChange = (parent, field, value) => {
     setProfile((prev) => ({
       ...prev,
-      [parent]: { ...prev[parent], [field]: value },
+      [parent]: { ...prev[parent], [field]: value || "" },
     }));
   };
 
   const saveChanges = () => {
-    // TODO: Implement actual API call to update profile
-    console.log("Saving updated profile:", profile);
-    alert("Profile update simulation – implement your API call here");
-    setEditMode(false);
+    toast(
+      (t) => (
+        <div className="min-w-[320px] rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Save Changes?
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              This will update your profile information.
+            </p>
+          </div>
+
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+
+                const loadingId = toast.loading("Updating profile...");
+
+                try {
+                  if (!profile?._id) throw new Error("User ID missing");
+
+                  const res = await fetch(`/api/users/${profile._id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(profile),
+                  });
+
+                  if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error || "Update failed");
+                  }
+
+                  const updated = await res.json();
+
+                  toast.success("Profile updated successfully!", {
+                    id: loadingId,
+                  });
+                  setEditMode(false);
+                  setProfile(updated);
+                } catch (err) {
+                  toast.error(err.message || "Failed to update profile", {
+                    id: loadingId,
+                  });
+                }
+              }}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+      },
+    );
   };
 
-  const displayValue = (value) => (value ? value : "—");
+  const displayValue = (value) => value ?? "—"; // ?? দিয়ে null/undefined handle
 
   return (
     <div className="container mx-auto px-4 py-4 max-w-6xl">
@@ -107,7 +166,7 @@ const PatientProfileDashboard = () => {
                   src={
                     profile.image ||
                     profile.doctorImageUrl ||
-                    "/default-avatar.jpg"
+                    "https://img.icons8.com/?size=100&id=23264&format=png&color=000000"
                   }
                   alt={profile.name}
                   className="w-full h-full object-cover"
@@ -120,13 +179,13 @@ const PatientProfileDashboard = () => {
               {editMode ? (
                 <input
                   type="text"
-                  value={profile.name}
+                  value={profile.name || ""} // ← নিশ্চিত করা হলো
                   onChange={(e) => handleChange("name", e.target.value)}
                   className="text-3xl font-bold text-gray-900 border-b border-gray-300 focus:outline-none focus:border-teal-500 w-full mb-2"
                 />
               ) : (
                 <h1 className="text-3xl font-bold text-gray-900 truncate">
-                  {profile.name}
+                  {profile.name || "—"}
                 </h1>
               )}
 
@@ -141,12 +200,12 @@ const PatientProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="email"
-                      value={profile.email}
+                      value={profile.email || ""}
                       onChange={(e) => handleChange("email", e.target.value)}
                       className="border-b border-gray-300 focus:outline-none focus:border-teal-500 flex-1"
                     />
                   ) : (
-                    <span className="truncate">{profile.email}</span>
+                    <span className="truncate">{profile.email || "—"}</span>
                   )}
                 </div>
 
@@ -155,13 +214,15 @@ const PatientProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="tel"
-                      value={profile.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
+                      value={profile.userNumber || ""} // ← এখানেই এরর হচ্ছিল
+                      onChange={(e) =>
+                        handleChange("userNumber", e.target.value)
+                      }
                       className="border-b border-gray-300 focus:outline-none focus:border-teal-500 flex-1"
                       placeholder="Phone number"
                     />
                   ) : (
-                    displayValue(profile.phone)
+                    displayValue(profile.userNumber)
                   )}
                 </div>
 
@@ -170,7 +231,7 @@ const PatientProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="text"
-                      value={profile.fullAddress}
+                      value={profile.fullAddress || ""}
                       onChange={(e) =>
                         handleChange("fullAddress", e.target.value)
                       }
@@ -226,7 +287,7 @@ const PatientProfileDashboard = () => {
             <div className="p-6">
               {editMode ? (
                 <textarea
-                  value={profile.about}
+                  value={profile.about || ""}
                   onChange={(e) => handleChange("about", e.target.value)}
                   rows={5}
                   className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
@@ -272,7 +333,7 @@ const PatientProfileDashboard = () => {
                 </div>
                 {editMode ? (
                   <select
-                    value={profile.bloodGroup}
+                    value={profile.bloodGroup || ""}
                     onChange={(e) => handleChange("bloodGroup", e.target.value)}
                     className="border border-gray-200 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   >
@@ -302,7 +363,7 @@ const PatientProfileDashboard = () => {
                 {editMode ? (
                   <input
                     type="date"
-                    value={profile.dateOfBirth}
+                    value={profile.dateOfBirth || ""} // ← খুব গুরুত্বপূর্ণ
                     onChange={(e) =>
                       handleChange("dateOfBirth", e.target.value)
                     }
@@ -331,14 +392,36 @@ const PatientProfileDashboard = () => {
             <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
               <Phone size={18} className="text-gray-500" />
               <h2 className="font-semibold text-gray-800">
-                Emergency Contacts
+                Contact Information
               </h2>
             </div>
-            <div className="p-6 space-y-8">
-              {/* Primary Emergency Contact */}
+            <div className="p-6 space-y-10">
+              {/* Personal Number */}
               <div>
                 <h3 className="font-medium text-gray-800 mb-4">
-                  Primary Emergency Contact
+                  Personal Phone Number
+                </h3>
+                {editMode ? (
+                  <input
+                    type="tel"
+                    value={profile.userNumber || ""}
+                    onChange={(e) => handleChange("userNumber", e.target.value)}
+                    placeholder="Your personal phone number"
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                ) : (
+                  <div className="text-gray-700">
+                    <p className="font-medium">
+                      {profile.userNumber || "Not provided"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="pt-6 border-t border-gray-100">
+                <h3 className="font-medium text-gray-800 mb-4">
+                  Emergency Contact
                 </h3>
                 {editMode ? (
                   <div className="space-y-3">
@@ -351,7 +434,7 @@ const PatientProfileDashboard = () => {
                           e.target.value,
                         )
                       }
-                      placeholder="Full name"
+                      placeholder="Contact person's full name"
                       className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <input
@@ -363,10 +446,11 @@ const PatientProfileDashboard = () => {
                           e.target.value,
                         )
                       }
-                      placeholder="Relationship (Spouse, Parent, etc.)"
+                      placeholder="Relationship (e.g., Spouse, Parent, Sibling)"
                       className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                     <input
+                      type="tel"
                       value={profile.emergencyContact?.phone || ""}
                       onChange={(e) =>
                         handleNestedChange(
@@ -375,88 +459,30 @@ const PatientProfileDashboard = () => {
                           e.target.value,
                         )
                       }
-                      placeholder="Phone number"
+                      placeholder="Emergency phone number"
                       className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
                 ) : (
                   <div className="text-gray-700 space-y-1">
-                    {profile.emergencyContact?.name ? (
+                    {profile.emergencyContact?.name ||
+                    profile.emergencyContact?.phone ? (
                       <>
-                        <p className="font-medium">
-                          {profile.emergencyContact.name}
-                        </p>
-                        <p className="text-sm">
-                          {profile.emergencyContact.relationship || "—"}
-                        </p>
-                        <p className="font-medium">
-                          {profile.emergencyContact.phone || "—"}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-gray-500">Not provided</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Secondary Contact */}
-              <div className="pt-6 border-t border-gray-100">
-                <h3 className="font-medium text-gray-800 mb-4">
-                  Secondary / Family Contact
-                </h3>
-                {editMode ? (
-                  <div className="space-y-3">
-                    <input
-                      value={profile.secondaryContact?.name || ""}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "secondaryContact",
-                          "name",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="Full name (optional)"
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                    <input
-                      value={profile.secondaryContact?.relationship || ""}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "secondaryContact",
-                          "relationship",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="Relationship"
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                    <input
-                      value={profile.secondaryContact?.phone || ""}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "secondaryContact",
-                          "phone",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="Phone number"
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    />
-                  </div>
-                ) : (
-                  <div className="text-gray-700 space-y-1">
-                    {profile.secondaryContact?.name ? (
-                      <>
-                        <p className="font-medium">
-                          {profile.secondaryContact.name}
-                        </p>
-                        <p className="text-sm">
-                          {profile.secondaryContact.relationship || "—"}
-                        </p>
-                        <p className="font-medium">
-                          {profile.secondaryContact.phone || "—"}
-                        </p>
+                        {profile.emergencyContact.name && (
+                          <p className="font-medium">
+                            {profile.emergencyContact.name}
+                          </p>
+                        )}
+                        {profile.emergencyContact.relationship && (
+                          <p className="text-sm">
+                            {profile.emergencyContact.relationship}
+                          </p>
+                        )}
+                        {profile.emergencyContact.phone && (
+                          <p className="font-medium">
+                            {profile.emergencyContact.phone}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <p className="text-gray-500">Not provided</p>
