@@ -42,6 +42,8 @@ const UserSchema = new mongoose.Schema(
         "dermatology",
         "neurology",
         "pediatrics",
+        "orthopedics",
+        "gynecology",
         "other",
       ],
     },

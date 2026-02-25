@@ -347,7 +347,7 @@ const AllAppointmentsPage = () => {
                     </th>
                     <th
                       scope="col"
-                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6 text-right"
+                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
                     >
                       Actions
                     </th>

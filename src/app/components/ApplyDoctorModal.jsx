@@ -25,6 +25,7 @@ export default function ApplyDoctorModal({ isOpen, onClose, session }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    console.log(formData);
 
     try {
       const res = await fetch("/api/apply-doctor", {
@@ -60,7 +61,7 @@ export default function ApplyDoctorModal({ isOpen, onClose, session }) {
       />
 
       {/* Modal Box */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-175 max-h-[90vh] overflow-y-auto">
         <div className="p-6 md:p-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
@@ -78,7 +79,7 @@ export default function ApplyDoctorModal({ isOpen, onClose, session }) {
 
           {/* Warning */}
           <div className="flex items-center mb-6 gap-2 bg-amber-50 p-3 rounded-lg">
-            <CircleAlert className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <CircleAlert className="w-5 h-5 text-amber-500 shrink-0" />
             <p className="text-sm text-amber-800">
               Your profile will be reviewed against our doctors' list for
               approval.
@@ -164,6 +165,7 @@ export default function ApplyDoctorModal({ isOpen, onClose, session }) {
                 <option value="pediatrics">Pediatrics</option>
                 <option value="orthopedics">Orthopedics</option>
                 <option value="gynecology">Gynecology</option>
+                <option value="other">Other / Specialized</option>
               </select>
             </div>
 
@@ -185,7 +187,7 @@ export default function ApplyDoctorModal({ isOpen, onClose, session }) {
 
               <button
                 type="submit"
-                className="btn btn-primary min-w-[140px] flex items-center gap-2"
+                className="btn btn-primary min-w-35 flex items-center gap-2"
                 disabled={loading}
               >
                 {loading ? (
