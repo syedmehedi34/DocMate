@@ -41,7 +41,7 @@ export default function Sidebar({ onCollapseChange }) {
 
   const menuLinks = {
     admin: [
-      { name: "Dashboard", href: "/dashboard/admin/home", icon: HomeIcon },
+      // { name: "Dashboard", href: "/dashboard/admin/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/admin/profile", icon: UserIcon },
       {
         name: "All Users",
@@ -65,7 +65,7 @@ export default function Sidebar({ onCollapseChange }) {
       },
     ],
     doctor: [
-      { name: "Dashboard", href: "/dashboard/doctor/home", icon: HomeIcon },
+      // { name: "Dashboard", href: "/dashboard/doctor/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/doctor/profile", icon: UserIcon },
       {
         name: "Patients",
@@ -79,7 +79,7 @@ export default function Sidebar({ onCollapseChange }) {
       },
     ],
     user: [
-      { name: "Dashboard", href: "/dashboard/user/home", icon: HomeIcon },
+      // { name: "Dashboard", href: "/dashboard/user/home", icon: HomeIcon },
       { name: "Profile", href: "/dashboard/user/profile", icon: UserIcon },
       { name: "Doctors", href: "/dashboard/user/doctors", icon: HeartIcon },
       {
@@ -199,7 +199,7 @@ export default function Sidebar({ onCollapseChange }) {
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className={`
-              w-full flex items-center gap-3 px-3 py-3 text-sm font-medium 
+              cursor-pointer w-full flex items-center gap-3 px-3 py-3 text-sm font-medium 
               rounded-lg hover:bg-red-600/20 hover:text-red-400 
               transition-all duration-200
               ${isCollapsed ? "justify-center" : ""}

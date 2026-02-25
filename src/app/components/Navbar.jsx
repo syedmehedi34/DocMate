@@ -19,9 +19,14 @@ export default function Navbar() {
     { name: "All Doctors", href: "/pages/alldoctors" },
     //{ name: "Contact", href: "/contact" },
     { name: "About Us", href: "/pages/about" },
-    { name: "Nexa", href: "/pages/Nexa" },
+    // { name: "Nexa", href: "/pages/Nexa" },
     ...(session
-      ? [{ name: "Dashboard", href: `/dashboard/${session?.user?.role}/home` }]
+      ? [
+          {
+            name: "Dashboard",
+            href: `/dashboard/${session?.user?.role}/profile`,
+          },
+        ]
       : []),
   ];
 
@@ -65,7 +70,7 @@ export default function Navbar() {
               {session ? (
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                  className="cursor-pointer bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
                 >
                   Logout
                 </button>
@@ -134,7 +139,7 @@ export default function Navbar() {
             {session ? (
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full px-4 py-3 text-left text-red-100 hover:bg-red-900/20 rounded-md transition-colors duration-200"
+                className="cursor-pointer w-full px-4 py-3 text-left text-red-100 hover:bg-red-900/20 rounded-md transition-colors duration-200"
               >
                 Logout
               </button>
