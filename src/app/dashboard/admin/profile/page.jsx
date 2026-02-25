@@ -101,7 +101,10 @@ const AdminProfileDashboard = () => {
               <div className="relative">
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white shadow">
                   <img
-                    src={admin.image || "/default-admin.jpg"}
+                    src={
+                      admin.image ||
+                      "https://img.icons8.com/?size=100&id=uWOKQW4wPHn6&format=png&color=000000"
+                    }
                     alt={admin.name}
                     className="w-full h-full object-cover"
                   />

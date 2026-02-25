@@ -182,6 +182,28 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // new added fields for patient
+    bloodGroup: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "-"],
+      default: "-",
+      required: false,
+    },
+    dob: {
+      type: Date,
+      default: null,
+      required: false,
+    },
+    userNumber: {
+      type: String,
+      default: "",
+      required: false,
+    },
+    emergencyContact: {
+      type: String,
+      default: "",
+      required: false,
+    },
   },
   {
     timestamps: true,
