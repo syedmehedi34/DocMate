@@ -39,7 +39,7 @@ const DoctorProfileDashboard = () => {
 
   const handleArrayChange = (field, index, value) => {
     setDoctor((prev) => {
-      const newArray = [...prev[field]];
+      const newArray = [...(prev[field] || [])];
       newArray[index] = value;
       return { ...prev, [field]: newArray };
     });
@@ -47,7 +47,7 @@ const DoctorProfileDashboard = () => {
 
   const handleNestedChange = (parent, index, subField, value) => {
     setDoctor((prev) => {
-      const newArray = [...prev[parent]];
+      const newArray = [...(prev[parent] || [])];
       newArray[index] = { ...newArray[index], [subField]: value };
       return { ...prev, [parent]: newArray };
     });
@@ -57,6 +57,13 @@ const DoctorProfileDashboard = () => {
     setDoctor((prev) => ({
       ...prev,
       [field]: [...(prev[field] || []), template],
+    }));
+  };
+
+  const removeItem = (field, index) => {
+    setDoctor((prev) => ({
+      ...prev,
+      [field]: (prev[field] || []).filter((_, i) => i !== index),
     }));
   };
 
@@ -109,7 +116,7 @@ const DoctorProfileDashboard = () => {
                   });
 
                   setEditMode(false);
-                  setDoctor(updated); // latest server data দিয়ে state sync করা হলো
+                  setDoctor(updated);
                 } catch (err) {
                   toast.error(err.message || "Failed to update profile", {
                     id: loadingId,
@@ -165,13 +172,13 @@ const DoctorProfileDashboard = () => {
               {editMode ? (
                 <input
                   type="text"
-                  value={doctor.name}
+                  value={doctor.name || ""}
                   onChange={(e) => handleChange("name", e.target.value)}
                   className="text-2xl sm:text-3xl font-bold text-gray-900 border-b border-gray-300 focus:outline-none focus:border-teal-500 w-full"
                 />
               ) : (
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {doctor.name}
+                  {doctor.name || "—"}
                 </h1>
               )}
 
@@ -180,15 +187,17 @@ const DoctorProfileDashboard = () => {
                 {editMode ? (
                   <input
                     type="text"
-                    value={doctor.doctorCategory}
+                    value={doctor.doctorCategory || ""}
                     onChange={(e) =>
                       handleChange("doctorCategory", e.target.value)
                     }
                     className="border-b border-gray-300 focus:outline-none focus:border-teal-500"
                   />
-                ) : (
+                ) : doctor.doctorCategory ? (
                   doctor.doctorCategory.charAt(0).toUpperCase() +
                   doctor.doctorCategory.slice(1)
+                ) : (
+                  "—"
                 )}
               </div>
 
@@ -198,14 +207,14 @@ const DoctorProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="email"
-                      value={doctor.appointmentEmail || doctor.email}
+                      value={doctor.appointmentEmail || doctor.email || ""}
                       onChange={(e) =>
                         handleChange("appointmentEmail", e.target.value)
                       }
                       className="border-b border-gray-300 focus:outline-none focus:border-teal-500"
                     />
                   ) : (
-                    doctor.appointmentEmail || doctor.email
+                    doctor.appointmentEmail || doctor.email || "—"
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -213,14 +222,14 @@ const DoctorProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="tel"
-                      value={doctor.appointmentNumber}
+                      value={doctor.appointmentNumber || ""}
                       onChange={(e) =>
                         handleChange("appointmentNumber", e.target.value)
                       }
                       className="border-b border-gray-300 focus:outline-none focus:border-teal-500"
                     />
                   ) : (
-                    doctor.appointmentNumber
+                    doctor.appointmentNumber || "—"
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -228,12 +237,12 @@ const DoctorProfileDashboard = () => {
                   {editMode ? (
                     <input
                       type="text"
-                      value={doctor.location}
+                      value={doctor.location || ""}
                       onChange={(e) => handleChange("location", e.target.value)}
                       className="border-b border-gray-300 focus:outline-none focus:border-teal-500"
                     />
                   ) : (
-                    doctor.location
+                    doctor.location || "—"
                   )}
                 </div>
               </div>
@@ -276,7 +285,7 @@ const DoctorProfileDashboard = () => {
           <ProfileSection title="About" icon={<User size={18} />}>
             {editMode ? (
               <textarea
-                value={doctor.about}
+                value={doctor.about || ""}
                 onChange={(e) => handleChange("about", e.target.value)}
                 rows={5}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -309,11 +318,24 @@ const DoctorProfileDashboard = () => {
             )}
             <div className="space-y-5">
               {doctor.worksAndExperiences?.map((exp, idx) => (
-                <div key={idx} className="border-l-4 border-teal-100 pl-5">
+                <div
+                  key={idx}
+                  className="border-l-4 border-teal-100 pl-5 relative group"
+                >
+                  {editMode && (
+                    <button
+                      onClick={() => removeItem("worksAndExperiences", idx)}
+                      className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                      title="Remove this experience"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+
                   {editMode ? (
                     <>
                       <input
-                        value={exp.position}
+                        value={exp.position || ""}
                         onChange={(e) =>
                           handleNestedChange(
                             "worksAndExperiences",
@@ -326,7 +348,7 @@ const DoctorProfileDashboard = () => {
                         placeholder="Position"
                       />
                       <input
-                        value={exp.workedAt}
+                        value={exp.workedAt || ""}
                         onChange={(e) =>
                           handleNestedChange(
                             "worksAndExperiences",
@@ -339,7 +361,7 @@ const DoctorProfileDashboard = () => {
                         placeholder="Worked At"
                       />
                       <input
-                        value={exp.duration}
+                        value={exp.duration || ""}
                         onChange={(e) =>
                           handleNestedChange(
                             "worksAndExperiences",
@@ -355,14 +377,20 @@ const DoctorProfileDashboard = () => {
                   ) : (
                     <>
                       <p className="font-medium text-gray-900">
-                        {exp.position}
+                        {exp.position || "—"}
                       </p>
-                      <p className="text-gray-600">{exp.workedAt}</p>
-                      <p className="text-sm text-gray-500">{exp.duration}</p>
+                      <p className="text-gray-600">{exp.workedAt || "—"}</p>
+                      <p className="text-sm text-gray-500">
+                        {exp.duration || "—"}
+                      </p>
                     </>
                   )}
                 </div>
               ))}
+              {(!doctor.worksAndExperiences ||
+                doctor.worksAndExperiences.length === 0) && (
+                <p className="text-gray-500 italic">No experience added yet.</p>
+              )}
             </div>
           </ProfileSection>
 
@@ -386,12 +414,23 @@ const DoctorProfileDashboard = () => {
               <div className="absolute left-3 top-0 h-full border-l-2 border-teal-200 mt-1"></div>
               <div className="space-y-4 pl-8">
                 {doctor.educations?.map((edu, idx) => (
-                  <div key={idx} className="relative">
+                  <div key={idx} className="relative group">
                     <div className="absolute left-[-27.1px] top-1 w-4 h-4 bg-teal-500 rounded-full border-2 border-white shadow"></div>
+
+                    {editMode && (
+                      <button
+                        onClick={() => removeItem("educations", idx)}
+                        className="absolute -right-3 -top-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title="Remove this education"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+
                     {editMode ? (
                       <div className="space-y-1">
                         <input
-                          value={edu.degree}
+                          value={edu.degree || ""}
                           onChange={(e) =>
                             handleNestedChange(
                               "educations",
@@ -404,7 +443,7 @@ const DoctorProfileDashboard = () => {
                           placeholder="Degree"
                         />
                         <input
-                          value={edu.institution}
+                          value={edu.institution || ""}
                           onChange={(e) =>
                             handleNestedChange(
                               "educations",
@@ -417,7 +456,7 @@ const DoctorProfileDashboard = () => {
                           placeholder="Institution"
                         />
                         <input
-                          value={edu.year}
+                          value={edu.year || ""}
                           onChange={(e) =>
                             handleNestedChange(
                               "educations",
@@ -433,14 +472,23 @@ const DoctorProfileDashboard = () => {
                     ) : (
                       <div className="space-y-1">
                         <p className="font-medium text-gray-900">
-                          {edu.degree}
+                          {edu.degree || "—"}
                         </p>
-                        <p className="text-gray-600">{edu.institution}</p>
-                        <p className="text-sm text-gray-500">{edu.year}</p>
+                        <p className="text-gray-600">
+                          {edu.institution || "—"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {edu.year || "—"}
+                        </p>
                       </div>
                     )}
                   </div>
                 ))}
+                {(!doctor.educations || doctor.educations.length === 0) && (
+                  <p className="text-gray-500 italic">
+                    No education added yet.
+                  </p>
+                )}
               </div>
             </div>
           </ProfileSection>
@@ -458,14 +506,14 @@ const DoctorProfileDashboard = () => {
                   editMode ? (
                     <input
                       type="number"
-                      value={doctor.consultationFee}
+                      value={doctor.consultationFee || ""}
                       onChange={(e) =>
                         handleChange("consultationFee", Number(e.target.value))
                       }
                       className="w-24 text-right border-b border-gray-300 focus:outline-none focus:border-teal-500"
                     />
                   ) : (
-                    `৳ ${doctor.consultationFee}`
+                    `৳ ${doctor.consultationFee || "—"}`
                   )
                 }
               />
@@ -487,23 +535,34 @@ const DoctorProfileDashboard = () => {
                   </button>
                 )}
               </div>
+
               {editMode ? (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {doctor.chamberTime?.map((time, i) => (
-                    <input
-                      key={i}
-                      value={time}
-                      onChange={(e) =>
-                        handleArrayChange("chamberTime", i, e.target.value)
-                      }
-                      className="w-full border-b border-gray-300 focus:outline-none focus:border-teal-500"
-                      placeholder="HH:MM - HH:MM"
-                    />
+                    <div key={i} className="flex items-center gap-2 group">
+                      <input
+                        value={time || ""}
+                        onChange={(e) =>
+                          handleArrayChange("chamberTime", i, e.target.value)
+                        }
+                        className="flex-1 border-b border-gray-300 focus:outline-none focus:border-teal-500"
+                        placeholder="HH:MM - HH:MM"
+                      />
+                      <button
+                        onClick={() => removeItem("chamberTime", i)}
+                        className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove this time slot"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-gray-800">
-                  {doctor.chamberTime?.join(" • ")}
+                  {doctor.chamberTime?.length
+                    ? doctor.chamberTime.join(" • ")
+                    : "Not specified"}
                 </p>
               )}
             </div>
@@ -524,23 +583,34 @@ const DoctorProfileDashboard = () => {
                   </button>
                 )}
               </div>
+
               {editMode ? (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {doctor.chamberDays?.map((day, i) => (
-                    <input
-                      key={i}
-                      value={day}
-                      onChange={(e) =>
-                        handleArrayChange("chamberDays", i, e.target.value)
-                      }
-                      className="w-full border-b border-gray-300 focus:outline-none focus:border-teal-500"
-                      placeholder="Day"
-                    />
+                    <div key={i} className="flex items-center gap-2 group">
+                      <input
+                        value={day || ""}
+                        onChange={(e) =>
+                          handleArrayChange("chamberDays", i, e.target.value)
+                        }
+                        className="flex-1 border-b border-gray-300 focus:outline-none focus:border-teal-500"
+                        placeholder="e.g., Saturday"
+                      />
+                      <button
+                        onClick={() => removeItem("chamberDays", i)}
+                        className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove this day"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-gray-800">
-                  {doctor.chamberDays?.join(", ")}
+                  {doctor.chamberDays?.length
+                    ? doctor.chamberDays.join(", ")
+                    : "Not specified"}
                 </p>
               )}
             </div>
@@ -552,18 +622,19 @@ const DoctorProfileDashboard = () => {
               value={
                 editMode ? (
                   <select
-                    value={doctor.currentStatus}
+                    value={doctor.currentStatus || "available"}
                     onChange={(e) =>
                       handleChange("currentStatus", e.target.value)
                     }
                     className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-teal-500"
                   >
                     <option value="available">Available</option>
+                    <option value="busy">Busy</option>
                     <option value="on-leave">On Leave</option>
                   </select>
                 ) : (
                   <span className="text-teal-700 font-medium capitalize">
-                    {doctor.currentStatus}
+                    {doctor.currentStatus || "—"}
                   </span>
                 )
               }
@@ -581,25 +652,45 @@ const DoctorProfileDashboard = () => {
               </button>
             )}
             <div className="flex flex-wrap gap-2">
-              {doctor.specializations?.map((spec, i) =>
-                editMode ? (
-                  <input
-                    key={i}
-                    value={spec}
-                    onChange={(e) =>
-                      handleArrayChange("specializations", i, e.target.value)
-                    }
-                    className="px-3 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-sm focus:outline-none focus:border-teal-500"
-                    placeholder="Specialization"
-                  />
-                ) : (
-                  <span
-                    key={i}
-                    className="px-3 py-1.5 bg-teal-50 text-teal-800 rounded-full text-sm font-medium border border-teal-100"
-                  >
-                    {spec}
-                  </span>
-                ),
+              {doctor.specializations?.map((spec, i) => (
+                <div
+                  key={i}
+                  className={`relative group ${editMode ? "pr-8" : ""}`}
+                >
+                  {editMode ? (
+                    <>
+                      <input
+                        value={spec || ""}
+                        onChange={(e) =>
+                          handleArrayChange(
+                            "specializations",
+                            i,
+                            e.target.value,
+                          )
+                        }
+                        className="px-3 py-1.5 bg-teal-50 border border-teal-200 rounded-full text-sm focus:outline-none focus:border-teal-500"
+                        placeholder="Specialization"
+                      />
+                      <button
+                        onClick={() => removeItem("specializations", i)}
+                        className="absolute right-0 top-0.5 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title="Remove specialization"
+                      >
+                        <X size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="px-3 py-1.5 bg-teal-50 text-teal-800 rounded-full text-sm font-medium border border-teal-100">
+                      {spec}
+                    </span>
+                  )}
+                </div>
+              ))}
+              {(!doctor.specializations ||
+                doctor.specializations.length === 0) && (
+                <p className="text-gray-500 italic w-full">
+                  No specializations added yet.
+                </p>
               )}
             </div>
           </ProfileSection>
