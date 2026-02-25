@@ -27,8 +27,15 @@ const DoctorProfileDashboard = () => {
   const [doctor, setDoctor] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
+  // ── Independent state for Upcoming Dates section ──
+  const [datesEditMode, setDatesEditMode] = useState(false);
+  const [tempDates, setTempDates] = useState([]);
+
   useEffect(() => {
-    if (user) setDoctor(user);
+    if (user) {
+      setDoctor(user);
+      setTempDates(user.openAppointmentsDates || []);
+    }
   }, [user]);
 
   const toggleEditMode = () => setEditMode(!editMode);
@@ -127,6 +134,89 @@ const DoctorProfileDashboard = () => {
               className="px-5 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700"
             >
               Save Changes
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+        style: {
+          padding: 0,
+          background: "transparent",
+          boxShadow: "none",
+          border: "none",
+        },
+      },
+    );
+  };
+
+  // ── Save only availability dates ──
+  const saveDates = () => {
+    toast(
+      (t) => (
+        <div className="min-w-[320px] rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Update Available Dates?
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-600">
+              This will update your upcoming availability calendar.
+            </p>
+          </div>
+          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                const loadingId = toast.loading("Saving dates...");
+
+                try {
+                  if (!doctor?._id) throw new Error("Doctor ID missing");
+
+                  const datesToSend = tempDates
+                    .filter((d) => d instanceof Date && !isNaN(d.getTime()))
+                    .map((d) => d.toISOString());
+
+                  const res = await fetch(`/api/users/${doctor._id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      openAppointmentsDates: datesToSend,
+                    }),
+                  });
+
+                  if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || "Update failed");
+                  }
+
+                  const updated = await res.json();
+
+                  toast.success("Availability dates updated!", {
+                    id: loadingId,
+                  });
+                  setDoctor(updated);
+                  setDatesEditMode(false);
+                  setTempDates(
+                    updated.openAppointmentsDates?.map((d) => new Date(d)) ||
+                      [],
+                  );
+                } catch (err) {
+                  toast.error(err.message || "Failed to save dates", {
+                    id: loadingId,
+                  });
+                  console.error("Dates update error:", err);
+                }
+              }}
+              className="px-5 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700"
+            >
+              Confirm
             </button>
           </div>
         </div>
@@ -275,6 +365,151 @@ const DoctorProfileDashboard = () => {
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ── NEW SECTION: Upcoming Availability Dates ── */}
+      <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden mb-8">
+        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+          <div className="flex items-center gap-3">
+            <CalendarDays size={20} className="text-teal-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Upcoming Available Dates
+            </h2>
+          </div>
+
+          {datesEditMode ? (
+            <div className="flex gap-3">
+              <button
+                onClick={saveDates}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <Save size={16} /> Save
+              </button>
+              <button
+                onClick={() => {
+                  setDatesEditMode(false);
+                  setTempDates(
+                    doctor?.openAppointmentsDates?.map((d) => new Date(d)) ||
+                      [],
+                  );
+                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium rounded-lg transition-colors"
+              >
+                <X size={16} /> Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setDatesEditMode(true);
+                setTempDates(
+                  doctor?.openAppointmentsDates?.map((d) => new Date(d)) || [],
+                );
+              }}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-teal-600/10 hover:bg-teal-600/20 text-teal-700 text-sm font-medium rounded-lg transition-colors"
+            >
+              <Edit2 size={16} /> Edit Dates
+            </button>
+          )}
+        </div>
+
+        <div className="p-6">
+          {datesEditMode ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Add the dates when you will be physically available at the
+                hospital (patients can book only on these dates).
+              </p>
+
+              <div className="space-y-3">
+                {tempDates.map((date, index) => (
+                  <div key={index} className="flex items-center gap-3 group">
+                    <input
+                      type="date"
+                      value={
+                        date instanceof Date && !isNaN(date)
+                          ? date.toISOString().split("T")[0]
+                          : ""
+                      }
+                      min={new Date().toISOString().split("T")[0]} // optional: prevent past dates
+                      onChange={(e) => {
+                        const newDates = [...tempDates];
+                        const selected = e.target.value
+                          ? new Date(e.target.value)
+                          : null;
+                        if (selected) {
+                          newDates[index] = selected;
+                          setTempDates(
+                            newDates.filter(
+                              (d) => d instanceof Date && !isNaN(d.getTime()),
+                            ),
+                          );
+                        } else {
+                          setTempDates(newDates.filter((_, i) => i !== index));
+                        }
+                      }}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                    <button
+                      onClick={() => {
+                        setTempDates(tempDates.filter((_, i) => i !== index));
+                      }}
+                      className="text-red-500 hover:text-red-700 opacity-60 hover:opacity-100 transition-opacity p-1"
+                      title="Remove date"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    setTempDates([...tempDates, tomorrow]);
+                  }}
+                  className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mt-3"
+                >
+                  <Plus size={18} /> Add New Date
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {doctor?.openAppointmentsDates?.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {[...doctor.openAppointmentsDates]
+                    .map((d) => new Date(d))
+                    .sort((a, b) => a - b)
+                    .map((date, i) => (
+                      <div
+                        key={i}
+                        className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-3 text-center"
+                      >
+                        <div className="text-sm font-medium text-teal-800">
+                          {date.toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </div>
+                        <div className="text-xs text-teal-700 mt-1">
+                          {date.toLocaleDateString("en-US", {
+                            weekday: "long",
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic text-center py-6">
+                  No upcoming dates added yet. Patients won't be able to book
+                  appointments until you add available dates.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
