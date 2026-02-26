@@ -12,7 +12,7 @@ export default function LayoutWrapper({ children }) {
     <div className="flex flex-col min-h-screen">
       <div>
         {!isDashboard && (
-          <div className="h-[72px]">
+          <div className="h-18">
             <Navbar />
           </div>
         )}
