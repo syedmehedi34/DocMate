@@ -1,5 +1,4 @@
 "use client";
-import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +11,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
+import RoleGuard from "@/components/RoleGuard";
 
 const UserPage = () => {
   const [patients, setPatients] = useState([]);

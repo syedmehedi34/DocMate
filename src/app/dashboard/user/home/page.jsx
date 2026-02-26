@@ -1,6 +1,6 @@
 "use client";
 
-import RoleGuard from "../../../components/RoleGuard";
+import RoleGuard from "@/components/RoleGuard";
 import { useSession } from "next-auth/react";
 
 export default function UserHome() {

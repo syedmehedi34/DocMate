@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import RoleGuard from "../../../components/RoleGuard";
 import { Search, X, RefreshCw, ArrowUpDown } from "lucide-react";
 import toast from "react-hot-toast";
-import Pagination from "../../../../components/Pagination";
+import RoleGuard from "@/components/RoleGuard";
+import Pagination from "@/components/Pagination";
 
 export default function AdminHome() {
   const [users, setUsers] = useState([]);

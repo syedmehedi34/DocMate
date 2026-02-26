@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import RoleGuard from "@/app/components/RoleGuard";
 import { Search, X, RefreshCw, Calendar, ArrowDownUp } from "lucide-react";
 import toast from "react-hot-toast";
+import RoleGuard from "@/components/RoleGuard";
 
 const DoctorAppointmentsPage = () => {
   const { data: session } = useSession();

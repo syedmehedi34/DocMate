@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
 import useUserById from "@/hooks/useUserById";
 import {
@@ -15,6 +14,7 @@ import {
 import toast from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import RoleGuard from "@/components/RoleGuard";
 
 const DoctorPage = () => {
   const itemsPerPage = 6;

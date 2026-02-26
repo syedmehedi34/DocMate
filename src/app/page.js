@@ -1,13 +1,12 @@
-import Image from "next/image";
-import HomeBanner from "./components/HomeBanner";
-import Updates from "./components/Updates";
 import About from "@/components/About";
+import Appointment from "@/components/Appointment";
+import HomeBanner from "@/components/HomeBanner";
 import HospitalStats from "@/components/HospitalStats";
-import Services from "@/components/Services";
-import Appointment from "./components/Appointment";
 import Newsletter from "@/components/Newsletter";
 import OurCommunity from "@/components/OurCommunity";
 import Review from "@/components/Review";
+import Services from "@/components/Services";
+import Updates from "@/components/Updates";
 
 export default function Home() {
   return (

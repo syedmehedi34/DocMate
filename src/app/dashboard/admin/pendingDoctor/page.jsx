@@ -1,10 +1,10 @@
 "use client";
 
-import RoleGuard from "@/app/components/RoleGuard";
 import { useEffect, useState } from "react";
 import { Search, X, RefreshCw, ArrowUpDown, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "@/components/Pagination";
+import RoleGuard from "@/components/RoleGuard";
 
 export default function DoctorApplicationsPage() {
   const [applications, setApplications] = useState([]);

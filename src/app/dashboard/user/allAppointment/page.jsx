@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import RoleGuard from "@/app/components/RoleGuard";
 import Pagination from "@/components/Pagination";
 import {
   Search,
@@ -13,6 +12,7 @@ import {
   ArrowDownUp,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import RoleGuard from "@/components/RoleGuard";
 
 const AllAppointmentsPage = () => {
   const { data: session } = useSession();

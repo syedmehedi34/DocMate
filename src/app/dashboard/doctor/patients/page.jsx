@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import RoleGuard from "@/app/components/RoleGuard";
 import { Search, X, RefreshCw } from "lucide-react";
+import RoleGuard from "@/components/RoleGuard";
 
 const DoctorPatientsPage = () => {
   const { data: session } = useSession();

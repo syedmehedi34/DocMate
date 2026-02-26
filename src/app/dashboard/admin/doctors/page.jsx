@@ -1,5 +1,4 @@
 "use client";
-import RoleGuard from "@/app/components/RoleGuard";
 import { useEffect, useState } from "react";
 import {
   Search,
@@ -11,6 +10,7 @@ import {
 import toast from "react-hot-toast";
 import Pagination from "@/components/Pagination"; // adjust path if needed
 import Link from "next/link";
+import RoleGuard from "@/components/RoleGuard";
 
 const DoctorPage = () => {
   const [doctors, setDoctors] = useState([]);
