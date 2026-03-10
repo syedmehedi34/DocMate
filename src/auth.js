@@ -3,6 +3,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
+import dbConnect from "../lib/mongodb";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -18,6 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
+          await dbConnect();
           const user = await User.findOne({
             email: credentials.email.toLowerCase().trim(),
           });
@@ -46,9 +48,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   session: {
     strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 days
   },
 
-  // 🔥 নতুন যোগ করা — Middleware এর জন্য
+  //
   callbacks: {
     async authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;

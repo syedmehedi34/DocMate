@@ -17,7 +17,7 @@ export default auth((req) => {
     (nextUrl.pathname.startsWith("/login") ||
       nextUrl.pathname.startsWith("/register"))
   ) {
-    const homeUrl = new URL("/");
+    const homeUrl = new URL("/", nextUrl);
     console.log(
       "Redirecting logged-in user from auth page to:",
       homeUrl.toString(),

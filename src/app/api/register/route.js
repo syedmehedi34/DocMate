@@ -9,6 +9,13 @@ export async function POST(request) {
     const body = await request.json();
     const { name, email, password } = body;
 
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { message: "All fields required" },
+        { status: 400 },
+      );
+    }
+
     await dbConnect();
 
     // Email lowercase + trim করে খোঁজা (case-insensitive)
