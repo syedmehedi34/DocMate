@@ -62,7 +62,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return isLoggedIn;
       }
 
-      // লগইন করা থাকলে login/register পেজে যেতে দিবে না
+      // if logged in then prevent to go to /login, /register page
       if (
         isLoggedIn &&
         (pathname.startsWith("/login") || pathname.startsWith("/register"))

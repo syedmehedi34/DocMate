@@ -18,7 +18,7 @@ export async function POST(request) {
 
     await dbConnect();
 
-    // Email lowercase + trim করে খোঁজা (case-insensitive)
+    // Email searching lowercase + trim  (case-insensitive)
     const normalizedEmail = email.toLowerCase().trim();
     const existingUser = await User.findOne({ email: normalizedEmail });
 
@@ -38,7 +38,7 @@ export async function POST(request) {
       role: "user", // default role
     });
 
-    // Success response — auto-login-এর জন্য client-এ email পাঠানো যথেষ্ট
+    // Success response
     return NextResponse.json(
       {
         message: "User registered successfully",
