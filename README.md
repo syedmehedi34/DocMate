@@ -91,7 +91,7 @@ yarn install
 🔐 Step 4: Configure Environment Variables
 Create a .env.local file in the root directory and add the following:
 
-NEXT_PUBLIC_MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=your_mongodb_connection_string
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000
 
