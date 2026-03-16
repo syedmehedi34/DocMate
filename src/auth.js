@@ -20,9 +20,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         try {
           await dbConnect();
+
           const user = await User.findOne({
             email: credentials.email.toLowerCase().trim(),
-          });
+          }).select("+password"); // password field যদি schema তে select: false থাকে
 
           if (!user) return null;
 
@@ -39,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role || "user",
           };
         } catch (error) {
-          console.error("Authorize error:", error);
+          console.error("Authorize error:", error.message);
           return null;
         }
       },
@@ -51,27 +52,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
 
-  //
   callbacks: {
-    async authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const pathname = nextUrl.pathname;
-
-      // Dashboard এর সব পেজ protected
-      if (pathname.startsWith("/dashboard")) {
-        return isLoggedIn;
-      }
-
-      // if logged in then prevent to go to /login, /register page
-      if (
-        isLoggedIn &&
-        (pathname.startsWith("/login") || pathname.startsWith("/register"))
-      ) {
-        return Response.redirect(new URL("/", nextUrl));
-      }
-
-      return true;
-    },
+    // ✅ Fix: authorized callback সরানো হয়েছে — middleware.js একাই handle করবে
+    // দুটো জায়গায় redirect logic থাকলে conflict এবং loop হয়
 
     async jwt({ token, user }) {
       if (user) {

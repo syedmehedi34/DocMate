@@ -16,42 +16,35 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // Autofill for testing/demo only — REMOVE in production for security
+  // ⚠️ Demo only — production এ এই function এবং buttons সরিয়ে দিন
   const fillCredentials = (type) => {
-    switch (type) {
-      case "admin":
-        setEmail("docmate-admin@gmail.com");
-        setPassword("adMin@123");
-        break;
-      case "doctor":
-        setEmail("dr.sm-hasan@gmail.com");
-        setPassword("docTor@123");
-        break;
-      case "user":
-        setEmail("john-smith@gmail.com");
-        setPassword("useR@123");
-        break;
-      default:
-        setEmail("");
-        setPassword("");
+    const map = {
+      admin: { email: "docmate-admin@gmail.com", password: "adMin@123" },
+      doctor: { email: "dr.sm-hasan@gmail.com", password: "docTor@123" },
+      user: { email: "john-smith@gmail.com", password: "useR@123" },
+    };
+    const creds = map[type];
+    if (creds) {
+      setEmail(creds.email);
+      setPassword(creds.password);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic client-side guard
+    if (!email.trim() || !password) return;
+
     setIsLoading(true);
 
     try {
       const result = await signIn("credentials", {
-        email,
+        email: email.toLowerCase().trim(),
         password,
         redirect: false,
-        callbackUrl: "/",
       });
 
-      // console.log("signIn result:", result);
-
-      // Success: error নেই (null/undefined)
       if (!result?.error) {
         await Swal.fire({
           icon: "success",
@@ -62,17 +55,14 @@ export default function LoginPage() {
           timerProgressBar: true,
         });
 
+        // ✅ router.push এর বদলে replace — back button এ login এ ফেরত না যাওয়ার জন্য
         router.replace("/");
+        router.refresh(); // session update নিশ্চিত করতে
       } else {
-        // Fail: error আছে
-        let errorMessage = "Invalid email or password";
-
-        if (result.error === "CredentialsSignin") {
-          errorMessage =
-            "Invalid credentials. Please check your email and password.";
-        } else if (result.error) {
-          errorMessage = result.error;
-        }
+        const errorMessage =
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password. Please try again."
+            : (result.error ?? "Something went wrong.");
 
         Swal.fire({
           icon: "error",
@@ -81,8 +71,7 @@ export default function LoginPage() {
           confirmButtonColor: "#2563eb",
         });
       }
-    } catch (error) {
-      // console.error("Unexpected login error:", error);
+    } catch {
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -95,14 +84,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Optional subtle background pattern or overlay */}
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-6xl overflow-hidden rounded-2xl shadow-2xl backdrop-blur-sm">
           <div className="flex flex-col md:flex-row">
-            {/* Left: Form - Glassmorphism card */}
+            {/* ── Left: Form ─────────────────────────────────────────────── */}
             <div className="flex-1 bg-white/70 backdrop-blur-xl border border-white/30 p-8 md:p-12">
               <div className="mx-auto w-full max-w-md">
                 <div className="mb-10 text-center">
@@ -114,7 +102,7 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                   {/* Email */}
                   <div>
                     <label
@@ -128,11 +116,13 @@ export default function LoginPage() {
                       <input
                         id="email"
                         type="email"
+                        autoComplete="email"
                         className="block w-full rounded-lg border border-gray-300 pl-10 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 outline-none transition-all"
                         placeholder="john@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -150,16 +140,21 @@ export default function LoginPage() {
                       <input
                         id="password"
                         type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
                         className="block w-full rounded-lg border border-gray-300 pl-10 pr-10 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 outline-none transition-all"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={isLoading}
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => setShowPassword((v) => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
                       >
                         {showPassword ? (
                           <BiSolidHide size={22} />
@@ -170,29 +165,35 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  {/* Quick login buttons */}
+                  {/* ⚠️ Demo quick-fill buttons — production এ সরিয়ে দিন */}
                   <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("admin")}
-                      className="rounded-lg bg-red-100 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-200 transition-all hover:scale-105"
-                    >
-                      Admin
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("doctor")}
-                      className="rounded-lg bg-green-100 px-4 py-2.5 text-sm font-medium text-green-700 hover:bg-green-200 transition-all hover:scale-105"
-                    >
-                      Doctor
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("user")}
-                      className="rounded-lg bg-blue-100 px-4 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-200 transition-all hover:scale-105"
-                    >
-                      User
-                    </button>
+                    {[
+                      {
+                        type: "admin",
+                        label: "Admin",
+                        cls: "bg-red-100 text-red-700 hover:bg-red-200",
+                      },
+                      {
+                        type: "doctor",
+                        label: "Doctor",
+                        cls: "bg-green-100 text-green-700 hover:bg-green-200",
+                      },
+                      {
+                        type: "user",
+                        label: "User",
+                        cls: "bg-blue-100 text-blue-700 hover:bg-blue-200",
+                      },
+                    ].map(({ type, label, cls }) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => fillCredentials(type)}
+                        disabled={isLoading}
+                        className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all hover:scale-105 disabled:opacity-50 ${cls}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
 
                   {/* Submit */}
@@ -210,7 +211,7 @@ export default function LoginPage() {
                 </form>
 
                 <p className="mt-8 text-center text-sm text-gray-600">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link
                     href="/register"
                     className="font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4 transition-colors"
@@ -221,9 +222,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Right: Hero Image with overlay */}
+            {/* ── Right: Hero Image ───────────────────────────────────────── */}
             <div className="relative hidden md:block md:flex-1">
-              <div className="absolute inset-0 bg-linear-to-r from-blue-600/30 to-teal-500/20 mix-blend-multiply" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/30 to-teal-500/20 mix-blend-multiply z-10" />
               <Image
                 src="/login.jpg"
                 alt="DocMate Healthcare"
@@ -231,7 +232,7 @@ export default function LoginPage() {
                 className="object-cover brightness-90 contrast-110"
                 priority
               />
-              <div className="absolute inset-0 flex items-center justify-center px-12 text-center text-white">
+              <div className="absolute inset-0 z-20 flex items-center justify-center px-12 text-center text-white">
                 <div>
                   <h2 className="text-4xl font-bold drop-shadow-lg">
                     Stay Healthy, Stay Connected

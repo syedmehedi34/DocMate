@@ -7,40 +7,37 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth?.user;
   const userRole = req.auth?.user?.role;
+  const pathname = nextUrl.pathname;
 
-  console.log("Middleware running for:", nextUrl.pathname); // debug
-  console.log("Is logged in?", isLoggedIn, "Role:", userRole);
-
-  // ==================== PREVENT LOGGED IN USER FROM AUTH PAGES ====================
+  // ==================== LOGGED IN USER → AUTH PAGES BLOCK ====================
   if (
     isLoggedIn &&
-    (nextUrl.pathname.startsWith("/login") ||
-      nextUrl.pathname.startsWith("/register"))
+    (pathname.startsWith("/login") || pathname.startsWith("/register"))
   ) {
-    const homeUrl = new URL("/", nextUrl);
-    console.log(
-      "Redirecting logged-in user from auth page to:",
-      homeUrl.toString(),
-    );
-    return Response.redirect(homeUrl);
+    return Response.redirect(new URL("/", nextUrl));
   }
 
   // ==================== ADMIN ONLY ====================
-  if (nextUrl.pathname.startsWith("/dashboard/admin")) {
+  if (pathname.startsWith("/dashboard/admin")) {
     if (!isLoggedIn || userRole !== "admin") {
       return Response.redirect(new URL("/login", nextUrl));
     }
   }
 
   // ==================== DOCTOR ONLY ====================
-  if (nextUrl.pathname.startsWith("/dashboard/doctor")) {
+  if (pathname.startsWith("/dashboard/doctor")) {
     if (!isLoggedIn || userRole !== "doctor") {
       return Response.redirect(new URL("/login", nextUrl));
     }
   }
 
-  // ==================== GENERAL DASHBOARD ====================
-  if (nextUrl.pathname.startsWith("/dashboard") && !isLoggedIn) {
+  // ==================== GENERAL DASHBOARD — LOGIN REQUIRED ====================
+  if (pathname.startsWith("/dashboard") && !isLoggedIn) {
+    return Response.redirect(new URL("/login", nextUrl));
+  }
+
+  // ==================== PROFILE — LOGIN REQUIRED ====================
+  if (pathname.startsWith("/profile") && !isLoggedIn) {
     return Response.redirect(new URL("/login", nextUrl));
   }
 });
