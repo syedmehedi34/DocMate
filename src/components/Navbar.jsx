@@ -49,9 +49,9 @@ export default function Navbar() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "All Doctors", href: "/pages/alldoctors" },
-    { name: "About Us", href: "/pages/about" },
-    { name: "Contact", href: "/pages/contact" },
+    { name: "All Doctors", href: "/alldoctors" },
+    { name: "About Us", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const dashboardHref = `/dashboard/${session?.user?.role}/profile`;
