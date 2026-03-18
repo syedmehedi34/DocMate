@@ -10,11 +10,24 @@ import {
   RotateCcw,
   Search,
   X,
+  MapPin,
+  Clock,
+  Stethoscope,
+  ChevronDown,
+  CalendarDays,
+  ClipboardList,
+  BadgeCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import RoleGuard from "@/components/RoleGuard";
+
+/* ── shared input style ── */
+const inputCls =
+  "w-full px-3.5 py-2.5 text-sm bg-[#f8faf9] border border-gray-200 rounded-xl " +
+  "outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 " +
+  "transition-all duration-200 text-gray-800 placeholder-gray-400";
 
 const DoctorPage = () => {
   const itemsPerPage = 6;
@@ -27,7 +40,6 @@ const DoctorPage = () => {
 
   const { user, isLoading: userLoading, error: userError } = useUserById();
 
-  // Form & modal state
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -36,12 +48,11 @@ const DoctorPage = () => {
     gender: "",
     disease: "",
   });
-
   const [selectedDate, setSelectedDate] = useState("");
   const [agreeCashPayment, setAgreeCashPayment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch doctors
+  /* ── fetch doctors ── */
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -49,83 +60,70 @@ const DoctorPage = () => {
         const data = await res.json();
         setDoctors(data.filter((u) => u.role === "doctor"));
       } catch (err) {
-        console.error("Error fetching doctors:", err);
+        console.error(err);
       }
     };
     fetchDoctors();
   }, []);
 
-  // Real-time search + sort filter
+  /* ── filter / search ── */
   useEffect(() => {
     let result = [...doctors];
-
-    // Search filter
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
-      result = result.filter((doctor) => {
-        const name = (doctor.name || "").toLowerCase();
-        const speciality = (doctor.doctorCategory || "").toLowerCase();
-        return name.includes(term) || speciality.includes(term);
-      });
+      result = result.filter(
+        (d) =>
+          (d.name || "").toLowerCase().includes(term) ||
+          (d.doctorCategory || "").toLowerCase().includes(term),
+      );
     }
-
-    // Sort by speciality
     if (sortSpeciality) {
-      result = result.filter((doctor) => {
-        return (
-          (doctor.doctorCategory || "").toLowerCase() ===
-          sortSpeciality.toLowerCase()
-        );
-      });
+      result = result.filter(
+        (d) =>
+          (d.doctorCategory || "").toLowerCase() ===
+          sortSpeciality.toLowerCase(),
+      );
     }
-
     setFilteredDoctors(result);
   }, [searchTerm, sortSpeciality, doctors]);
 
-  // Highlight function
+  /* ── highlight ── */
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
-
     const regex = new RegExp(
       `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
       "gi",
     );
-
     return text.replace(
       regex,
       '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
     );
   };
 
+  /* ── future dates ── */
   const getFutureDates = (doctor) => {
     if (!doctor?.openAppointmentsDates) return [];
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     return doctor.openAppointmentsDates
-      .filter((dateStr) => {
-        const d = new Date(dateStr);
+      .filter((ds) => {
+        const d = new Date(ds);
         d.setHours(0, 0, 0, 0);
         return d > today;
       })
-      .map((dateStr) => {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("en-US", {
+      .map((ds) =>
+        new Date(ds).toLocaleDateString("en-US", {
           day: "numeric",
           month: "short",
           year: "numeric",
-        });
-      });
+        }),
+      );
   };
 
-  const handleSelectDate = (date) => {
-    setSelectedDate(date);
-  };
-
+  const handleSelectDate = (date) => setSelectedDate(date);
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((p) => ({ ...p, [name]: value }));
   };
 
   const resetForm = () => {
@@ -153,9 +151,7 @@ const DoctorPage = () => {
       toast.error("Please fill all required fields and agree to cash payment.");
       return;
     }
-
     setIsSubmitting(true);
-
     const submissionData = {
       patientName: form.name.trim(),
       patientAge: form.age ? Number(form.age) : undefined,
@@ -168,31 +164,23 @@ const DoctorPage = () => {
       cashOnAppointmentDay: true,
       diseaseDetails: form.disease?.trim() || undefined,
       appliedAt: new Date().toISOString(),
-
       applicantUserId: user?._id,
       applicantUserName: user?.name?.trim(),
       applicantUserEmail: user?.email?.trim(),
-
       doctorId: selectedDoctor?._id,
       doctorName: selectedDoctor?.name?.trim(),
       doctorEmail: selectedDoctor?.email?.trim(),
-
       isAppointmentConfirmed: false,
     };
-
     try {
       const response = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submissionData),
       });
-
       const result = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(result.message || "Failed to book appointment");
-      }
-
       toast.success("Appointment booked successfully!");
       resetForm();
       document.getElementById("booking_modal").close();
@@ -212,435 +200,533 @@ const DoctorPage = () => {
     agreeCashPayment &&
     !isSubmitting;
 
-  if (userLoading) return <div className="text-center py-12">Loading...</div>;
-  if (userError || !user) {
+  /* ── guards ── */
+  if (userLoading)
     return (
-      <div className="text-center py-12 text-red-600 font-medium">
-        Please log in to book an appointment.
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-gray-400">Loading...</p>
       </div>
     );
-  }
+  if (userError || !user)
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-sm text-red-400 font-medium">
+          Please log in to book an appointment.
+        </p>
+      </div>
+    );
 
+  /* ────────────────── RENDER ────────────────── */
   return (
     <RoleGuard allowedRoles={["user"]}>
-      <div className="container mx-auto px-4 py-4 max-w-6xl">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Our Specialists
-            </h1>
-          </div>
-
-          {/* Search + Sort Controls */}
-          <div className="mb-6 flex flex-col justify-between sm:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md text-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-
-              <input
-                type="text"
-                placeholder="Search by doctor name, specialities, etc..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder-gray-400"
-              />
-
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* ── Page header ── */}
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-6 h-0.5 bg-green-600 rounded-full" />
+              <p className="text-green-700 text-xs font-semibold tracking-widest uppercase">
+                Our Specialists
+              </p>
             </div>
+            <h1 className="text-2xl font-black text-gray-900">Find a Doctor</h1>
+            <p className="text-sm text-gray-400 mt-1">
+              Browse and book from {doctors.length} certified specialists.
+            </p>
+          </div>
+        </div>
 
-            {/* Sort by Speciality Dropdown */}
-            <div className="relative w-full sm:w-64 text-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <ArrowDownUp className="h-4 w-4 text-gray-400" />
-              </div>
-
-              <select
-                value={sortSpeciality}
-                onChange={(e) => setSortSpeciality(e.target.value)}
-                className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 bg-white"
+        {/* ── Search + filter bar ── */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Search by name or specialty..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-200
+                         rounded-xl outline-none focus:border-green-400 focus:ring-2
+                         focus:ring-green-100 transition-all text-gray-800 placeholder-gray-400"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <option value="">Sort by Speciality (All)</option>
-                <option value="Cardiology">Cardiology</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Orthopedics">Orthopedics</option>
-                <option value="Pediatrics">Pediatrics</option>
-              </select>
-
-              {sortSpeciality && (
-                <button
-                  onClick={() => setSortSpeciality("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-            </div>
+                <X size={14} />
+              </button>
+            )}
           </div>
 
-          {/* Doctors List */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-            <div className="divide-y divide-gray-300">
+          {/* Sort */}
+          <div className="relative sm:w-56">
+            <ArrowDownUp
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+            <select
+              value={sortSpeciality}
+              onChange={(e) => setSortSpeciality(e.target.value)}
+              className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-200
+                         rounded-xl outline-none focus:border-green-400 focus:ring-2
+                         focus:ring-green-100 transition-all text-gray-700 appearance-none cursor-pointer"
+            >
+              <option value="">All Specialities</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Pediatrics">Pediatrics</option>
+            </select>
+            {sortSpeciality && (
+              <button
+                onClick={() => setSortSpeciality("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Result count ── */}
+        <p className="text-xs text-gray-400">
+          Showing{" "}
+          <span className="font-bold text-gray-700">
+            {filteredDoctors.length}
+          </span>{" "}
+          doctor{filteredDoctors.length !== 1 ? "s" : ""}
+          {searchTerm && (
+            <span>
+              {" "}
+              matching "
+              <span className="text-green-700 font-semibold">{searchTerm}</span>
+              "
+            </span>
+          )}
+        </p>
+
+        {/* ── Doctor list ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {paginatedDoctors.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div
+                className="w-14 h-14 rounded-2xl bg-[#f8faf9] border border-gray-100
+                              flex items-center justify-center mb-3"
+              >
+                <Stethoscope size={22} className="text-gray-300" />
+              </div>
+              <p className="text-sm font-semibold text-gray-500">
+                No doctors found
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Try adjusting your search or filter.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
               {paginatedDoctors.map((doctor) => (
                 <div
                   key={doctor._id}
-                  className="p-5 sm:p-6 hover:bg-indigo-50/30 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 p-5
+                             hover:bg-[#f8faf9] transition-colors duration-200"
                 >
-                  <div className="flex flex-col gap-5">
-                    <div className="flex items-start gap-4">
-                      <img
-                        className="h-14 w-14 rounded-full object-cover ring-1 ring-gray-200 shrink-0"
-                        src={
-                          doctor.doctorImageUrl ||
-                          "https://i.ibb.co/33gs5fP/user.png"
-                        }
-                        alt={doctor.name}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base font-semibold text-gray-900">
-                          {/* Highlight Doctor Name */}
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: highlightText(`Dr. ${doctor.name}`),
-                            }}
-                          />
-                        </div>
-                        <div className="text-sm text-indigo-600 font-medium mt-0.5">
-                          {/* Highlight Speciality */}
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: highlightText(
-                                doctor.doctorCategory || "General Medicine",
-                              ),
-                            }}
-                          />
-                        </div>
-                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-                          {doctor.experienceYear && (
-                            <span>
-                              {doctor.experienceYear} years experience •{" "}
-                            </span>
-                          )}
-                          {doctor.location && <span>{doctor.location}</span>}
-                        </div>
-                      </div>
-                    </div>
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <img
+                      src={
+                        doctor.doctorImageUrl ||
+                        "https://i.ibb.co/33gs5fP/user.png"
+                      }
+                      alt={doctor.name}
+                      className="w-14 h-14 rounded-xl object-cover border-2 border-gray-100"
+                    />
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5
+                                     bg-green-400 rounded-full border-2 border-white"
+                    />
+                  </div>
 
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 sm:hidden">
-                      <div>
-                        Fee:{" "}
-                        <span className="font-medium text-gray-900">
-                          ৳{doctor.consultationFee?.toLocaleString() || "—"}
-                        </span>
-                      </div>
-                      {doctor.appointmentNumber && (
-                        <div>
-                          Booking:{" "}
-                          <span className="font-medium">
-                            {doctor.appointmentNumber}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <button
-                        onClick={() => {
-                          setSelectedDoctor(doctor);
-                          resetForm();
-                          document.getElementById("booking_modal").showModal();
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                      <h3
+                        className="text-sm font-bold text-gray-900"
+                        dangerouslySetInnerHTML={{
+                          __html: highlightText(`${doctor.name}`),
                         }}
-                        className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm"
-                      >
-                        Book Appointment
-                      </button>
+                      />
+                      <span
+                        className="text-[0.62rem] font-semibold capitalize
+                                       bg-green-50 border border-green-200 text-green-700
+                                       px-2 py-0.5 rounded-full"
+                        dangerouslySetInnerHTML={{
+                          __html: highlightText(
+                            doctor.doctorCategory || "General",
+                          ),
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mt-1">
+                      {doctor.experienceYear && (
+                        <span className="flex items-center gap-1">
+                          <Clock size={11} /> {doctor.experienceYear} yrs
+                          experience
+                        </span>
+                      )}
+                      {doctor.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin size={11} /> {doctor.location}
+                        </span>
+                      )}
+                      {doctor.chamberDays?.length > 0 && (
+                        <span className="flex items-center gap-1">
+                          <CalendarDays size={11} />{" "}
+                          {doctor.chamberDays.join(" • ")}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="hidden sm:flex sm:items-center sm:justify-between mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600">
-                    <div className="flex gap-6">
-                      <div>
-                        Fee:{" "}
-                        <span className="font-medium text-gray-900">
-                          ৳{doctor.consultationFee?.toLocaleString() || "—"}
-                        </span>
-                      </div>
-                      {doctor.appointmentNumber && (
-                        <div>
-                          Booking No:{" "}
-                          <span className="font-medium">
-                            {doctor.appointmentNumber}
-                          </span>
-                        </div>
-                      )}
+                  {/* Fee + CTA */}
+                  <div className="flex sm:flex-col items-center sm:items-end gap-4 sm:gap-2 shrink-0">
+                    <div className="text-right">
+                      <p className="text-[0.6rem] text-gray-400 uppercase tracking-wider">
+                        Fee
+                      </p>
+                      <p className="text-base font-black text-gray-900 leading-none mt-0.5">
+                        ৳{doctor.consultationFee?.toLocaleString() || "—"}
+                      </p>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {doctor.chamberDays?.length > 0 &&
-                        doctor.chamberDays.join(" • ")}
-                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedDoctor(doctor);
+                        resetForm();
+                        document.getElementById("booking_modal").showModal();
+                      }}
+                      className="flex items-center gap-1.5 bg-green-700 hover:bg-green-800
+                                 text-white text-xs font-bold px-4 py-2.5 rounded-xl
+                                 transition-colors duration-200 shadow-sm whitespace-nowrap"
+                    >
+                      <Calendar size={13} />
+                      Book Now
+                    </button>
                   </div>
                 </div>
               ))}
-
-              {doctors.length === 0 && (
-                <div className="py-16 text-center text-gray-500">
-                  No doctors available at the moment.
-                </div>
-              )}
             </div>
-          </div>
-
-          <Pagination
-            data={filteredDoctors}
-            itemsPerPage={itemsPerPage}
-            onPageDataChange={setPaginatedDoctors}
-          />
+          )}
         </div>
 
-        {/* Booking Modal */}
-        <dialog
-          id="booking_modal"
-          className="modal modal-bottom sm:modal-middle"
-        >
-          <div className="modal-box max-w-4xl w-11/12 p-0 overflow-hidden rounded-2xl">
-            {/* Header */}
-            <div className="bg-indigo-600 text-white px-6 py-4 sticky top-0 z-10">
-              <h3 className="text-xl font-bold">
-                Book Appointment with Dr. {selectedDoctor?.name}
-              </h3>
-            </div>
+        {/* Pagination */}
+        <Pagination
+          data={filteredDoctors}
+          itemsPerPage={itemsPerPage}
+          onPageDataChange={setPaginatedDoctors}
+        />
+      </div>
 
-            {/* Body */}
-            <div className="p-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-indigo-100">
-              {selectedDoctor && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                  {/* LEFT - Form */}
-                  <div>
-                    <h4 className="text-xl font-bold text-[#003367] mb-5">
+      {/* ════════════════════════════════════
+          BOOKING MODAL
+      ════════════════════════════════════ */}
+      <dialog id="booking_modal" className="modal modal-bottom sm:modal-middle">
+        <div className="modal-box max-w-4xl w-11/12 p-0 rounded-2xl overflow-hidden border border-gray-100 shadow-2xl">
+          {/* Modal header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-green-100">
+                <CalendarDays size={16} className="text-green-700" />
+              </div>
+              <div>
+                <p className="text-[0.65rem] text-gray-400 uppercase tracking-widest font-semibold">
+                  New Appointment
+                </p>
+                <p className="text-sm font-bold text-gray-900 leading-none mt-0.5">
+                  Dr. {selectedDoctor?.name}
+                </p>
+              </div>
+            </div>
+            <form method="dialog">
+              <button
+                className="flex items-center justify-center w-8 h-8 rounded-lg
+                                 bg-[#f8faf9] border border-gray-200 text-gray-400
+                                 hover:bg-gray-100 hover:text-gray-600 transition-all"
+              >
+                <X size={15} />
+              </button>
+            </form>
+          </div>
+
+          {/* Modal body */}
+          <div className="p-6 max-h-[72vh] overflow-y-auto bg-[#f8faf9]">
+            {selectedDoctor && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* LEFT — Form */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-green-100">
+                      <ClipboardList size={13} className="text-green-700" />
+                    </div>
+                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-widest">
                       Patient Information
                     </h4>
-
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <input
-                          type="text"
-                          name="name"
-                          placeholder="Full Name *"
-                          value={form.name}
-                          onChange={handleChange}
-                          className="input input-bordered w-full focus:border-indigo-500"
-                          required
-                        />
-                        <input
-                          type="number"
-                          name="age"
-                          placeholder="Age"
-                          value={form.age}
-                          onChange={handleChange}
-                          className="input input-bordered w-full focus:border-indigo-500"
-                          min="0"
-                        />
-                      </div>
-
-                      <input
-                        type="email"
-                        name="email"
-                        placeholder="Email (optional)"
-                        value={form.email}
-                        onChange={handleChange}
-                        className="input input-bordered w-full focus:border-indigo-500"
-                      />
-
-                      {/* Mobile number & gender */}
-                      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                        <div className="w-full sm:flex-1">
-                          <PhoneInput
-                            country="bd"
-                            value={form.phone}
-                            onChange={(phone) =>
-                              setForm((p) => ({ ...p, phone }))
-                            }
-                            inputProps={{
-                              name: "phone",
-                              required: true,
-                              className:
-                                "pl-12 input input-bordered w-full focus:border-indigo-500 !h-10 !text-base",
-                            }}
-                            containerClass="!w-full"
-                            buttonClass="!rounded-l-lg !border-gray-300"
-                            inputClass="!rounded-r-lg !border-gray-300"
-                            enableSearch
-                            placeholder="Mobile number *"
-                          />
-                        </div>
-
-                        <div className="w-full sm:w-40">
-                          <select
-                            name="gender"
-                            value={form.gender}
-                            onChange={handleChange}
-                            className="pl-2 select select-bordered w-full focus:border-indigo-500"
-                            required
-                          >
-                            <option value="">Gender *</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <textarea
-                        name="disease"
-                        placeholder="Disease / Symptoms / Reason for visit"
-                        value={form.disease}
-                        onChange={handleChange}
-                        rows={4}
-                        className="textarea textarea-bordered w-full focus:border-indigo-500"
-                      />
-
-                      {/* checkbox container */}
-                      <div className="flex items-start gap-3 mt-5 ">
-                        <input
-                          type="checkbox"
-                          id="cash-agree"
-                          checked={agreeCashPayment}
-                          onChange={(e) =>
-                            setAgreeCashPayment(e.target.checked)
-                          }
-                          className="checkbox checkbox-primary mt-1"
-                        />
-                        <label
-                          htmlFor="cash-agree"
-                          className="text-sm cursor-pointer"
-                        >
-                          <strong>I agree:</strong> Consultation fee will be
-                          paid in <strong>cash</strong> on the appointment day.
-                        </label>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* RIGHT - Summary & Dates */}
-                  <div>
-                    <h4 className="text-xl font-bold text-[#003367] mb-5">
-                      Confirm Booking
-                    </h4>
+                  <div className="space-y-3">
+                    {/* Name + Age */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name *"
+                        value={form.name}
+                        onChange={handleChange}
+                        className={inputCls}
+                        required
+                      />
+                      <input
+                        type="number"
+                        name="age"
+                        placeholder="Age"
+                        min="0"
+                        value={form.age}
+                        onChange={handleChange}
+                        className={inputCls}
+                      />
+                    </div>
 
-                    <div className="space-y-3 text-base">
-                      <p>
-                        <span className="font-semibold text-indigo-700">
-                          Doctor:
-                        </span>{" "}
-                        Dr. {selectedDoctor.name}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-indigo-700">
-                          Date:
-                        </span>{" "}
-                        {selectedDate || "— Please select —"}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-indigo-700">
-                          Fee:
-                        </span>{" "}
-                        ৳
-                        {selectedDoctor.consultationFee?.toLocaleString() ||
-                          "—"}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-indigo-700">
-                          Payment:
-                        </span>{" "}
-                        {agreeCashPayment ? "Cash on day" : "Not confirmed"}
-                      </p>
+                    {/* Email */}
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email (optional)"
+                      value={form.email}
+                      onChange={handleChange}
+                      className={inputCls}
+                    />
 
-                      <div className="mt-6">
-                        <h5 className="font-semibold mb-2">Available Dates</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {getFutureDates(selectedDoctor).length > 0 ? (
-                            getFutureDates(selectedDoctor).map((date) => (
-                              <button
-                                key={date}
-                                type="button"
-                                onClick={() => handleSelectDate(date)}
-                                className={`btn btn-sm ${
-                                  selectedDate === date
-                                    ? "btn-primary text-white"
-                                    : "btn-outline"
-                                }`}
-                              >
-                                {date}
-                              </button>
-                            ))
-                          ) : (
-                            <p className="text-sm text-gray-500">
-                              No upcoming slots available
-                            </p>
-                          )}
+                    {/* Phone + Gender */}
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <PhoneInput
+                          country="bd"
+                          value={form.phone}
+                          onChange={(phone) =>
+                            setForm((p) => ({ ...p, phone }))
+                          }
+                          inputStyle={{
+                            width: "100%",
+                            height: "42px",
+                            fontSize: "14px",
+                            borderRadius: "12px",
+                            border: "1px solid #e5e7eb",
+                            backgroundColor: "#f8faf9",
+                          }}
+                          buttonStyle={{
+                            borderRadius: "12px 0 0 12px",
+                            border: "1px solid #e5e7eb",
+                            backgroundColor: "#f8faf9",
+                          }}
+                          containerStyle={{ width: "100%" }}
+                          enableSearch
+                        />
+                      </div>
+                      <div className="relative w-[40%]">
+                        <select
+                          name="gender"
+                          value={form.gender}
+                          onChange={handleChange}
+                          className={`${inputCls} appearance-none pr-8`}
+                          required
+                        >
+                          <option value="">Gender *</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                        </select>
+                        <ChevronDown
+                          size={13}
+                          className="absolute top-3.5 right-3 text-gray-400 pointer-events-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Disease */}
+                    <textarea
+                      name="disease"
+                      rows={3}
+                      placeholder="Symptoms / Reason for visit"
+                      value={form.disease}
+                      onChange={handleChange}
+                      className={`${inputCls} resize-none`}
+                    />
+
+                    {/* Checkbox */}
+                    <label
+                      htmlFor="cash-agree"
+                      className="flex items-start gap-3 cursor-pointer pt-1"
+                    >
+                      <input
+                        type="checkbox"
+                        id="cash-agree"
+                        checked={agreeCashPayment}
+                        onChange={(e) => setAgreeCashPayment(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-green-600 cursor-pointer"
+                      />
+                      <span className="text-xs text-gray-500 leading-relaxed">
+                        <strong className="text-gray-700">I agree:</strong>{" "}
+                        Consultation fee will be paid in
+                        <strong className="text-gray-700"> cash</strong> on the
+                        appointment day.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* RIGHT — Summary + Dates */}
+                <div className="flex flex-col gap-4">
+                  {/* Available dates */}
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-green-100">
+                        <CalendarDays size={13} className="text-green-700" />
+                      </div>
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-widest">
+                        Available Dates
+                      </h4>
+                    </div>
+                    {getFutureDates(selectedDoctor).length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {getFutureDates(selectedDoctor).map((date) => (
+                          <button
+                            key={date}
+                            type="button"
+                            onClick={() => handleSelectDate(date)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200
+                              ${
+                                selectedDate === date
+                                  ? "bg-green-700 text-white border-green-700 shadow-sm"
+                                  : "bg-[#f8faf9] text-gray-700 border-gray-200 hover:border-green-400 hover:bg-green-50"
+                              }`}
+                          >
+                            {date}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">
+                        No upcoming slots available.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Booking summary */}
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex-1">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-green-100">
+                        <BadgeCheck size={13} className="text-green-700" />
+                      </div>
+                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-widest">
+                        Booking Summary
+                      </h4>
+                    </div>
+
+                    <div className="space-y-2.5 text-xs">
+                      {[
+                        {
+                          label: "Doctor",
+                          value: `Dr. ${selectedDoctor.name}`,
+                        },
+                        {
+                          label: "Date",
+                          value: selectedDate || "Select a date",
+                        },
+                        {
+                          label: "Fee",
+                          value: `৳${selectedDoctor.consultationFee?.toLocaleString() || "—"}`,
+                        },
+                        {
+                          label: "Payment",
+                          value: agreeCashPayment
+                            ? "Cash on day"
+                            : "Not confirmed",
+                        },
+                        { label: "Patient", value: form.name || "—" },
+                        { label: "Phone", value: form.phone || "—" },
+                      ].map(({ label, value }) => (
+                        <div
+                          key={label}
+                          className="flex justify-between py-1.5 border-b border-gray-100 last:border-0"
+                        >
+                          <span className="text-gray-400">{label}</span>
+                          <span
+                            className={`font-semibold text-right max-w-[55%] truncate
+                            ${
+                              value === "Select a date" ||
+                              value === "Not confirmed" ||
+                              value === "—"
+                                ? "text-gray-300"
+                                : "text-gray-800"
+                            }`}
+                          >
+                            {value}
+                          </span>
                         </div>
-                      </div>
+                      ))}
+                    </div>
 
-                      <div className="mt-8 flex gap-3">
-                        <button
-                          type="button"
-                          className="btn btn-error flex-1"
-                          onClick={resetForm}
-                          disabled={isSubmitting}
-                        >
-                          <RotateCcw size={16} />
-                          Reset
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleSubmit}
-                          disabled={!isFormValid}
-                          className={`btn flex-1 text-white gap-2 ${
-                            isFormValid
-                              ? "btn-success"
-                              : "btn-disabled bg-gray-400 cursor-not-allowed"
-                          }`}
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <span className="loading loading-spinner loading-sm"></span>
-                              Booking...
-                            </>
-                          ) : (
-                            <>
-                              <CircleCheckBig size={16} />
-                              Confirm Booking
-                            </>
-                          )}
-                        </button>
-                      </div>
+                    {/* Action buttons */}
+                    <div className="flex gap-2.5 mt-5 pt-4 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={resetForm}
+                        disabled={isSubmitting}
+                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold
+                                   border border-red-200 bg-red-50 hover:bg-red-100 text-red-500
+                                   py-2.5 rounded-xl transition-colors duration-200 disabled:opacity-50"
+                      >
+                        <RotateCcw size={13} /> Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={!isFormValid}
+                        className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold
+                                    py-2.5 rounded-xl transition-colors duration-200
+                                    ${
+                                      isFormValid
+                                        ? "bg-green-700 hover:bg-green-800 text-white shadow-sm"
+                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    }`}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />{" "}
+                            Booking...
+                          </>
+                        ) : (
+                          <>
+                            <CircleCheckBig size={13} /> Confirm Booking
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="modal-action px-6 pb-6 pt-2 border-t bg-base-100 sticky bottom-0 z-10">
-              <form method="dialog">
-                <button className="btn">Close</button>
-              </form>
-            </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          <form method="dialog" className="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
-      </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </RoleGuard>
   );
 };
