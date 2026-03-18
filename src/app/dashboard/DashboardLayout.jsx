@@ -3,8 +3,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
+import Sidebar from "../../components/Sidebar";
+import Topbar from "../../components/Topbar";
 
 export default function DashboardLayout({ children }) {
   const { data: session, status } = useSession();
