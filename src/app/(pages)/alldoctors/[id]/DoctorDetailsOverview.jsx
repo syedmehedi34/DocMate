@@ -1,92 +1,92 @@
 import React from "react";
-import { FaLongArrowAltRight } from "react-icons/fa";
+import { MoveRight, GraduationCap, Briefcase, Award } from "lucide-react";
+
+const SectionTitle = ({ icon: Icon, title }) => (
+  <div className="flex items-center gap-2.5 mb-5">
+    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100">
+      <Icon size={15} className="text-green-700" />
+    </div>
+    <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+  </div>
+);
+
+const TimelineItem = ({ primary, secondary, meta }) => (
+  <li className="relative pl-6">
+    {/* dot */}
+    <span
+      className="absolute left-0 top-1.5 w-3 h-3 rounded-full
+                     border-2 border-green-500 bg-green-50"
+    />
+    <p className="text-sm font-bold text-gray-900">{primary}</p>
+    {secondary && <p className="text-sm text-gray-600 mt-0.5">{secondary}</p>}
+    {meta && <p className="text-xs text-gray-400 mt-0.5">{meta}</p>}
+  </li>
+);
 
 const DoctorDetailsOverview = ({ doctor }) => {
   return (
-    <>
-      <div className="mt-10 space-y-8 font-medium">
-        <div>
-          <h3 className="text-xl font-bold text-[#003367] mb-3">About</h3>
-          <p className="text-[#003367] leading-relaxed">{doctor?.about}</p>
+    <div className="mt-8 space-y-10">
+      {/* ── About ── */}
+      {doctor?.about && (
+        <div className="bg-[#f8faf9] border border-gray-100 rounded-2xl p-6">
+          <SectionTitle icon={Award} title="About" />
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {doctor?.about}
+          </p>
         </div>
-        {/* Education  */}
-        <div>
-          <h3 className="text-xl font-bold text-[#003367] mb-5">Education</h3>
+      )}
 
-          <div className="relative h-full pl-1.5 flex">
-            {/* vertical line */}
-            <div className="border border-gray-300 min-h-full mt-3"></div>
-
-            <ul className="space-y-4">
-              {doctor?.educations?.map((edu) => (
-                <li key={edu?._id} className="relative">
-                  {/* dot — SAME AS WORK */}
-                  <span className="absolute -left-[7.5px] top-2 w-[13px] h-[13px] rounded-full border-2 border-[#7CAB33] bg-[#f3fee4]"></span>
-
-                  <div className="ml-4 space-y-1">
-                    <p className="text-lg font-semibold text-[#003367]">
-                      {edu?.institution}
-                    </p>
-
-                    <p className="text-[#003367]">{edu?.degree}</p>
-
-                    <p className="text-sm text-gray-500">{edu?.year}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* ── Education + Work side by side ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Education */}
+        <div className="bg-[#f8faf9] border border-gray-100 rounded-2xl p-6">
+          <SectionTitle icon={GraduationCap} title="Education" />
+          <ul className="space-y-5 border-l-2 border-gray-200 pl-4">
+            {doctor?.educations?.map((edu) => (
+              <TimelineItem
+                key={edu?._id}
+                primary={edu?.institution}
+                secondary={edu?.degree}
+                meta={edu?.year}
+              />
+            ))}
+          </ul>
         </div>
 
         {/* Work & Experience */}
-        <div>
-          <h3 className="text-xl font-bold text-[#003367] mb-5">
-            Work & Experience
-          </h3>
-
-          <div className="relative h-full pl-1.5 flex">
-            <div className="border border-gray-300 min-h-full mt-3"></div>
-            <ul className="space-y-4">
-              {doctor?.worksAndExperiences?.map((edu) => (
-                <li key={edu?._id} className="relative">
-                  <span className="absolute -left-[7.5px] top-2 w-[13px] h-[13px] rounded-full border-2 border-[#7CAB33] bg-[#f3fee4]"></span>
-
-                  <div className="ml-4 space-y-1">
-                    <p className="text-lg font-semibold text-[#003367]">
-                      {edu?.workedAt}
-                    </p>
-
-                    <p className="text-[#003367]">{edu?.position}</p>
-
-                    <p className="text-sm text-gray-500">{edu?.duration}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Specializations */}
-        <div>
-          <h3 className="text-xl font-bold text-[#003367] mb-3">
-            Specializations
-          </h3>
-          <>
-            <div className="flex flex-col gap-1">
-              {doctor?.specializations?.map((spec, idx) => (
-                <div
-                  key={idx}
-                  className="text-blue-950 flex items-center gap-3 pl-2"
-                >
-                  <FaLongArrowAltRight size={20} />
-                  <p>{spec}</p>
-                </div>
-              ))}
-            </div>
-          </>
+        <div className="bg-[#f8faf9] border border-gray-100 rounded-2xl p-6">
+          <SectionTitle icon={Briefcase} title="Work & Experience" />
+          <ul className="space-y-5 border-l-2 border-gray-200 pl-4">
+            {doctor?.worksAndExperiences?.map((exp) => (
+              <TimelineItem
+                key={exp?._id}
+                primary={exp?.workedAt}
+                secondary={exp?.position}
+                meta={exp?.duration}
+              />
+            ))}
+          </ul>
         </div>
       </div>
-    </>
+
+      {/* ── Specializations ── */}
+      {doctor?.specializations?.length > 0 && (
+        <div className="bg-[#f8faf9] border border-gray-100 rounded-2xl p-6">
+          <SectionTitle icon={Award} title="Specializations" />
+          <div className="flex flex-col gap-2">
+            {doctor?.specializations?.map((spec, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2.5 text-sm text-gray-700"
+              >
+                <MoveRight size={14} className="text-green-600 shrink-0" />
+                {spec}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
