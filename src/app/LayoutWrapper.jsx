@@ -9,10 +9,10 @@ export default function LayoutWrapper({ children }) {
   const isDashboard = pathname.startsWith("/dashboard");
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#f8faf9]">
       <div>
         {!isDashboard && (
-          <div className="h-18">
+          <div className="h-16">
             <Navbar />
           </div>
         )}
