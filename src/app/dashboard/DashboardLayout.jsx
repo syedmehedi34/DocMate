@@ -1,10 +1,12 @@
-// src/app/DashboardLayout.jsx  (or app/(dashboard)/layout.jsx etc.)
+// src/app/DashboardLayout.jsx
 "use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { Stethoscope } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
   const { data: session, status } = useSession();
@@ -17,10 +19,26 @@ export default function DashboardLayout({ children }) {
     }
   }, [status, router]);
 
+  /* ── Loading state ── */
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen ">
-        <p className="text-lg font-semibold text-gray-700">Loading...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8faf9] gap-4">
+        <div className="flex items-center gap-2.5 mb-2">
+          <div
+            className="flex items-center justify-center w-10 h-10 rounded-xl
+                          bg-green-700 border border-green-600/40"
+          >
+            <Stethoscope size={18} color="#fff" strokeWidth={2.2} />
+          </div>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">
+            Doc<span className="text-green-600">Mate</span>
+          </span>
+        </div>
+        <div
+          className="w-8 h-8 border-2 border-green-600 border-t-transparent
+                        rounded-full animate-spin"
+        />
+        <p className="text-sm text-gray-400">Loading your dashboard...</p>
       </div>
     );
   }
@@ -28,7 +46,7 @@ export default function DashboardLayout({ children }) {
   if (!session) return null;
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-screen bg-[#f8faf9]">
       {/* Sidebar */}
       <aside
         className={`
@@ -40,22 +58,22 @@ export default function DashboardLayout({ children }) {
         <Sidebar onCollapseChange={setIsCollapsed} />
       </aside>
 
-      {/* Topbar – now using ml like main content → smooth! */}
+      {/* Topbar */}
       <header
         className={`
-    fixed top-0 z-20 bg-white border-b border-gray-200
-    transition-all duration-300 ease-in-out
-    ${isCollapsed ? "left-16" : "left-64"} 
-    right-0
-  `}
+          fixed top-0 z-20 bg-white border-b border-gray-100
+          transition-all duration-300 ease-in-out
+          ${isCollapsed ? "left-16" : "left-64"}
+          right-0
+        `}
       >
         <Topbar />
       </header>
 
-      {/* Main content – already good */}
+      {/* Main content */}
       <div
         className={`
-          transition-all duration-200 ease-in-out
+          transition-all duration-300 ease-in-out
           ${isCollapsed ? "ml-16" : "ml-64"}
           pt-16 min-h-screen flex flex-col
         `}
