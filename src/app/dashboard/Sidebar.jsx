@@ -15,7 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { FaUserDoctor } from "react-icons/fa6";
 import { Menu, X } from "lucide-react";
-import ApplyDoctorModal from "./ApplyDoctorModal"; // adjust path
+import ApplyDoctorModal from "../../components/ApplyDoctorModal"; // adjust path
 
 export default function Sidebar({ onCollapseChange }) {
   const { data: session } = useSession();
