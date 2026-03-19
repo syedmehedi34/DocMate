@@ -120,7 +120,7 @@ const UserSchema = new mongoose.Schema(
     },
     currentStatus: {
       type: String,
-      enum: ["available", "on-leave"],
+      enum: ["available", "on-leave", "busy"],
       default: "available",
     },
     educations: {
