@@ -1,23 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, X, RefreshCw, ArrowUpDown, FileText } from "lucide-react";
+import {
+  Search,
+  X,
+  RefreshCw,
+  ArrowUpDown,
+  FileText,
+  Stethoscope,
+  CheckCircle2,
+  XCircle,
+  Mail,
+  ExternalLink,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "@/components/Pagination";
 import RoleGuard from "@/components/RoleGuard";
+
+/* ── avatar initials ── */
+const initials = (name = "") =>
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "?";
+const avatarColor = (name = "") => {
+  const colors = [
+    "bg-green-100 text-green-700",
+    "bg-blue-100 text-blue-700",
+    "bg-purple-100 text-purple-700",
+    "bg-amber-100 text-amber-700",
+    "bg-pink-100 text-pink-700",
+  ];
+  return colors[(name.charCodeAt(0) || 0) % colors.length];
+};
 
 export default function DoctorApplicationsPage() {
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [paginatedApplications, setPaginatedApplications] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(""); // "" = all
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [uniqueCategories, setUniqueCategories] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -27,18 +54,16 @@ export default function DoctorApplicationsPage() {
   const fetchApplications = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const res = await fetch("/api/doctor-applications");
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || `HTTP ${res.status}`);
+        const e = await res.json();
+        throw new Error(e.error || `HTTP ${res.status}`);
       }
       const data = await res.json();
       setApplications(data.applications || []);
       setFilteredApplications(data.applications || []);
     } catch (err) {
-      console.error("Failed to load applications:", err);
       setError(err.message || "Could not load doctor applications.");
       setApplications([]);
       setFilteredApplications([]);
@@ -47,133 +72,106 @@ export default function DoctorApplicationsPage() {
     }
   };
 
-  // Extract unique categories
   useEffect(() => {
     if (applications.length > 0) {
-      const categories = [
+      const cats = [
         ...new Set(
-          applications.map((app) => app.doctorCategory || "Uncategorized"),
+          applications.map((a) => a.doctorCategory || "Uncategorized"),
         ),
       ];
-      setUniqueCategories(categories.sort());
+      setUniqueCategories(cats.sort());
     }
   }, [applications]);
 
-  // Search + filter logic
   useEffect(() => {
     let result = [...applications];
-
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
-      result = result.filter((app) => {
-        const name = (app.name || "").toLowerCase();
-        const email = (app.email || "").toLowerCase();
-        return name.includes(term) || email.includes(term);
-      });
+      result = result.filter(
+        (a) =>
+          (a.name || "").toLowerCase().includes(term) ||
+          (a.email || "").toLowerCase().includes(term),
+      );
     }
-
     if (selectedCategory) {
       result = result.filter(
-        (app) =>
-          (app.doctorCategory || "Uncategorized").toLowerCase() ===
+        (a) =>
+          (a.doctorCategory || "Uncategorized").toLowerCase() ===
           selectedCategory.toLowerCase(),
       );
     }
-
     setFilteredApplications(result);
   }, [applications, searchTerm, selectedCategory]);
 
   const clearSearch = () => setSearchTerm("");
   const clearFilter = () => setSelectedCategory("");
 
-  // Highlight matching text
   const highlightText = (text = "") => {
     if (!searchTerm.trim() || !text) return text;
-    const regex = new RegExp(
-      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi",
-    );
     return text.replace(
-      regex,
+      new RegExp(
+        `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+        "gi",
+      ),
       '<mark class="bg-yellow-200 font-semibold px-0.5 rounded">$1</mark>',
     );
   };
 
-  // approve or reject application
   const handleAction = (appId, action) => {
     const isApprove = action === "approve";
     const actionText = isApprove ? "Approve" : "Reject";
     const successText = isApprove ? "approved" : "rejected";
-    const verbLower = actionText.toLowerCase();
 
     toast(
       (t) => (
-        <div className="min-w-90 max-w-105 rounded-xl bg-white shadow-xl border border-gray-200/80 overflow-hidden">
-          {/* Header / Message */}
+        <div className="min-w-[320px] rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
           <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {actionText} Application
+            <h3 className="text-base font-bold text-gray-900">
+              {actionText} Application?
             </h3>
-            <p className="mt-1.5 text-sm text-gray-600">
-              Are you sure you want to {verbLower} this doctor application? This
-              action cannot be undone.
+            <p className="mt-1 text-sm text-gray-500">
+              This action cannot be undone.
             </p>
           </div>
-
-          {/* Buttons */}
-          <div className="px-6 py-4 flex justify-end gap-3 bg-gray-50/40">
+          <div className="px-6 py-4 flex justify-end gap-3 bg-[#f8faf9]">
             <button
               onClick={() => toast.dismiss(t.id)}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50"
             >
               Cancel
             </button>
-
             <button
               onClick={async () => {
                 toast.dismiss(t.id);
-
                 const loadingId = toast.loading(
                   `${actionText}ing application…`,
-                  { style: { borderRadius: "10px" } },
                 );
-
                 try {
                   const res = await fetch(`/api/doctor-applications/${appId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action }),
                   });
-
                   if (!res.ok) {
-                    const errData = await res.json().catch(() => ({}));
-                    throw new Error(errData.error || `Failed to ${action}`);
+                    const e = await res.json().catch(() => ({}));
+                    throw new Error(e.error || `Failed to ${action}`);
                   }
-
                   toast.success(`Application ${successText} successfully`, {
                     id: loadingId,
                     duration: 2500,
                   });
-
                   fetchApplications();
                 } catch (err) {
-                  console.error("Action failed:", err);
                   toast.error(
                     err.message || `Failed to ${action} application`,
-                    {
-                      id: loadingId,
-                      duration: 5000,
-                    },
+                    { id: loadingId, duration: 5000 },
                   );
                 }
               }}
-              className={`px-5 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors shadow-sm ${
-                isApprove
-                  ? "bg-green-600 hover:bg-green-700 focus:ring-green-400"
-                  : "bg-red-600 hover:bg-red-700 focus:ring-red-400"
-              }`}
+              className={`px-4 py-2 text-sm font-semibold text-white rounded-xl transition-colors
+                ${isApprove ? "bg-green-700 hover:bg-green-800" : "bg-red-600 hover:bg-red-700"}`}
             >
-              {actionText} Application
+              {actionText}
             </button>
           </div>
         </div>
@@ -191,89 +189,113 @@ export default function DoctorApplicationsPage() {
     );
   };
 
-  if (loading) {
+  /* ── guards ── */
+  if (loading)
     return (
-      <div className="p-6 flex justify-center items-center min-h-[60vh]">
-        <div className="animate-pulse text-gray-500">
-          Loading applications...
+      <RoleGuard allowedRoles={["admin"]}>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-400">Loading applications...</p>
         </div>
-      </div>
+      </RoleGuard>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
-      <div className="p-6 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">
-        {error}
-        <button
-          onClick={fetchApplications}
-          className="ml-4 btn btn-sm btn-outline btn-error"
-        >
-          Retry
-        </button>
-      </div>
+      <RoleGuard allowedRoles={["admin"]}>
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
+          <p className="text-sm text-red-400">{error}</p>
+          <button
+            onClick={fetchApplications}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold
+                     bg-red-50 border border-red-200 text-red-600 rounded-xl hover:bg-red-100"
+          >
+            <RefreshCw size={13} /> Retry
+          </button>
+        </div>
+      </RoleGuard>
     );
-  }
 
+  /* ─────────────── RENDER ─────────────── */
   return (
     <RoleGuard allowedRoles={["admin"]}>
-      <div className="container mx-auto px-4 py-4 max-w-6xl">
-        {/* Header */}
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Doctor Applications
-          </h2>
-
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">
-              {filteredApplications.length} application
-              {filteredApplications.length !== 1 ? "s" : ""}
-            </span>
-            <button
-              onClick={fetchApplications}
-              className="btn btn-outline btn-sm gap-2"
-            >
-              <RefreshCw size={16} />
-              Refresh
-            </button>
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-6 h-0.5 bg-green-600 rounded-full" />
+              <p className="text-green-700 text-xs font-semibold tracking-widest uppercase">
+                Admin Dashboard
+              </p>
+            </div>
+            <h1 className="text-2xl font-black text-gray-900">
+              Doctor Applications
+            </h1>
+            <p className="text-sm text-gray-400 mt-1">
+              <span className="font-bold text-gray-700">
+                {filteredApplications.length}
+              </span>{" "}
+              pending application{filteredApplications.length !== 1 ? "s" : ""}
+              {selectedCategory && (
+                <>
+                  {" "}
+                  ·{" "}
+                  <span className="text-green-700 font-semibold">
+                    {selectedCategory}
+                  </span>
+                </>
+              )}
+            </p>
           </div>
+          <button
+            onClick={fetchApplications}
+            className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 text-sm font-semibold
+                       bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-[#f8faf9]
+                       hover:border-green-200 transition-all duration-200"
+          >
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
 
-        {/* Search + Filter */}
-        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4 text-sm">
-          {/* Search Bar */}
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
+        {/* ── Search + filter ── */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
             <input
               type="text"
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 placeholder-gray-400"
+              className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-200 rounded-xl
+                         outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100
+                         transition-all text-gray-800 placeholder-gray-400"
             />
             {searchTerm && (
               <button
                 onClick={clearSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X size={14} />
               </button>
             )}
           </div>
-
-          {/* Filter by Category */}
-          <div className="relative w-full sm:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <ArrowUpDown className="h-5 w-5 text-gray-400" />
-            </div>
+          <div className="relative sm:w-56">
+            <ArrowUpDown
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 bg-white appearance-none"
+              className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-200 rounded-xl
+                         outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100
+                         transition-all text-gray-700 appearance-none cursor-pointer"
             >
-              <option value="">Filter by Category (All)</option>
+              <option value="">All Categories</option>
               {uniqueCategories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -283,152 +305,183 @@ export default function DoctorApplicationsPage() {
             {selectedCategory && (
               <button
                 onClick={clearFilter}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X size={14} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Table / Empty state */}
+        {/* ── Empty state ── */}
         {filteredApplications.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500 shadow-sm">
-            <p className="text-lg">
+          <div
+            className="flex flex-col items-center justify-center py-20 bg-white
+                          rounded-2xl border border-gray-100 shadow-sm text-center"
+          >
+            <div
+              className="w-14 h-14 rounded-2xl bg-[#f8faf9] border border-gray-100
+                            flex items-center justify-center mb-3"
+            >
+              <Stethoscope size={22} className="text-gray-300" />
+            </div>
+            <p className="text-sm font-semibold text-gray-500">
               {searchTerm || selectedCategory
-                ? "No applications match your search/filter criteria."
-                : "No pending doctor applications at the moment."}
+                ? "No applications match your filters."
+                : "No pending applications right now."}
             </p>
             {(searchTerm || selectedCategory) && (
-              <p className="mt-2 text-sm">
-                Try adjusting your search or{" "}
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedCategory("");
-                  }}
-                  className="text-blue-600 hover:underline"
-                >
-                  clear filters
-                </button>
-              </p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("");
+                }}
+                className="mt-3 text-xs text-green-700 font-semibold hover:underline"
+              >
+                Clear filters
+              </button>
             )}
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto shadow-sm ring-1 ring-black/5 rounded-xl">
-              <table className="min-w-full divide-y divide-gray-200 bg-white">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                    >
-                      #
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                    >
-                      Applicant Info
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                    >
-                      Category
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                    >
-                      CV
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-[#f8faf9]">
+                      {[
+                        { label: "#", cls: "w-12" },
+                        { label: "Applicant", cls: "" },
+                        { label: "Email", cls: "hidden md:table-cell" },
+                        { label: "Category", cls: "" },
+                        { label: "CV", cls: "hidden sm:table-cell" },
+                        { label: "Actions", cls: "" },
+                      ].map(({ label, cls }) => (
+                        <th
+                          key={label}
+                          className={`px-5 py-3.5 text-left text-[0.62rem] font-bold
+                                       text-gray-400 uppercase tracking-widest ${cls}`}
+                        >
+                          {label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
 
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {paginatedApplications.map((app, index) => (
-                    <tr
-                      key={app._id}
-                      className="hover:bg-blue-50/40 transition-colors duration-150"
-                    >
-                      <td className="px-4 py-5 sm:px-6 text-gray-700">
-                        {index + 1}
-                      </td>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedApplications.map((app, index) => (
+                      <tr
+                        key={app._id}
+                        className="hover:bg-[#f8faf9] transition-colors duration-150"
+                      >
+                        {/* # */}
+                        <td className="px-5 py-4 text-xs font-semibold text-gray-400">
+                          {index + 1}
+                        </td>
 
-                      <td className="px-4 py-5 sm:px-6">
-                        <div className="flex flex-col">
-                          <div
-                            className="font-medium text-gray-900"
-                            dangerouslySetInnerHTML={{
-                              __html: highlightText(app.name || "—"),
-                            }}
-                          />
-                          <div className="text-sm text-gray-600 mt-0.5">
+                        {/* Applicant */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`flex items-center justify-center w-10 h-10 rounded-xl
+                                            text-xs font-bold shrink-0 ${avatarColor(app.name || "")}`}
+                            >
+                              {initials(app.name || "")}
+                            </div>
+                            <div>
+                              <p
+                                className="text-sm font-bold text-gray-900"
+                                dangerouslySetInnerHTML={{
+                                  __html: highlightText(app.name || "—"),
+                                }}
+                              />
+                              {/* email shown on mobile below name */}
+                              <div className="flex items-center gap-1 text-xs text-gray-400 md:hidden mt-0.5">
+                                <Mail size={11} className="text-green-500" />
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: highlightText(app.email || "—"),
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Email */}
+                        <td className="hidden md:table-cell px-5 py-4">
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <Mail
+                              size={12}
+                              className="text-green-500 shrink-0"
+                            />
                             <span
                               dangerouslySetInnerHTML={{
                                 __html: highlightText(app.email || "—"),
                               }}
                             />
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-4 py-5 sm:px-6">
-                        <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            app.doctorCategory
-                              ? "bg-teal-100 text-teal-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {app.doctorCategory || "Uncategorized"}
-                        </span>
-                      </td>
+                        {/* Category */}
+                        <td className="px-5 py-4">
+                          <span
+                            className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border capitalize
+                            ${
+                              app.doctorCategory
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-gray-100 text-gray-400 border-gray-200"
+                            }`}
+                          >
+                            {app.doctorCategory || "Uncategorized"}
+                          </span>
+                        </td>
 
-                      <td className="px-4 py-5 sm:px-6 text-center">
-                        {app.doctorCvUrl ? (
-                          <a
-                            href={app.doctorCvUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-                          >
-                            <FileText size={16} />
-                            View CV
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
+                        {/* CV */}
+                        <td className="hidden sm:table-cell px-5 py-4">
+                          {app.doctorCvUrl ? (
+                            <a
+                              href={app.doctorCvUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold
+                                         text-green-700 bg-green-50 hover:bg-green-100 border border-green-200
+                                         px-3 py-1.5 rounded-xl transition-colors duration-200"
+                            >
+                              <FileText size={12} /> View CV{" "}
+                              <ExternalLink size={11} />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-gray-300">No CV</span>
+                          )}
+                        </td>
 
-                      <td className="px-4 py-5 sm:px-6 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleAction(app._id, "approve")}
-                            className="btn btn-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-150 shadow-sm hover:shadow"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleAction(app._id, "reject")}
-                            className="btn btn-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-150 shadow-sm hover:shadow"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        {/* Actions */}
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleAction(app._id, "approve")}
+                              className="flex items-center gap-1.5 text-xs font-bold text-white
+                                         bg-green-700 hover:bg-green-800 px-3 py-2 rounded-xl
+                                         transition-colors duration-200 shadow-sm"
+                            >
+                              <CheckCircle2 size={13} /> Approve
+                            </button>
+                            <button
+                              onClick={() => handleAction(app._id, "reject")}
+                              className="flex items-center gap-1.5 text-xs font-bold text-red-600
+                                         bg-red-50 hover:bg-red-100 border border-red-200
+                                         px-3 py-2 rounded-xl transition-colors duration-200"
+                            >
+                              <XCircle size={13} /> Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <Pagination
