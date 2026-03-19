@@ -88,9 +88,9 @@ export default function Navbar() {
           {/* ── Desktop right side ── */}
           <div className="hidden md:flex items-center gap-2">
             {/* Theme toggle — wired up by parent/context */}
-            <button className="nav-theme-btn" aria-label="Toggle theme">
+            {/* <button className="nav-theme-btn" aria-label="Toggle theme">
               <Sun size={15} />
-            </button>
+            </button> */}
 
             {session ? (
               /* ── User dropdown ── */
