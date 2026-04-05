@@ -1,4 +1,4 @@
-// src/components/Sidebar.jsx
+// src/app/dashboard/Sidebar.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -89,63 +89,45 @@ export default function Sidebar({ onCollapseChange }) {
       alert("Your application has been approved. Logging out...");
       signOut({ callbackUrl: "/" });
     }
-  }, [role, session, signOut]);
+  }, [role, session]);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   const roleBadgeColor = {
-    admin: "bg-purple-500/20 text-purple-200 border-purple-500/30",
-    doctor: "bg-blue-500/20   text-blue-200   border-blue-500/30",
-    user: "bg-green-500/20  text-green-200  border-green-500/30",
+    admin: "bg-purple-50 text-purple-700 border-purple-200",
+    doctor: "bg-sky-50    text-sky-700    border-sky-200",
+    user: "bg-teal-50   text-teal-700   border-teal-200",
   };
 
   return (
     <>
       <aside
         className={`
-          flex flex-col h-screen
-          fixed left-0 top-0 z-30
+          flex flex-col h-screen fixed left-0 top-0 z-30
+          bg-white border-r border-slate-100
           transition-all duration-300 ease-in-out
           ${isCollapsed ? "w-16" : "w-64"}
         `}
-        style={{
-          background:
-            "linear-gradient(180deg, #0d2b1f 0%, #122d20 60%, #0f2419 100%)",
-        }}
       >
-        {/* subtle texture overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-
         {/* ── Logo ── */}
         <div
-          className={`relative z-10 h-16 flex items-center shrink-0
-                         border-b border-white/8
-                         ${isCollapsed ? "justify-center px-3" : "justify-between px-4"}`}
+          className={`h-16 flex items-center shrink-0 border-b border-slate-100
+                      ${isCollapsed ? "justify-center px-3" : "justify-between px-5"}`}
         >
           {!isCollapsed && (
             <Link href="/" className="flex items-center gap-2.5">
-              <div
-                className="flex items-center justify-center w-8 h-8 rounded-xl
-                              bg-green-500/20 border border-green-400/30"
-              >
-                <Stethoscope size={15} color="#4ade80" strokeWidth={2.2} />
+              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-teal-600">
+                <Stethoscope size={15} color="#fff" strokeWidth={2.2} />
               </div>
-              <span className="text-base font-bold tracking-tight text-white">
-                Doc<span className="text-green-400">Mate</span>
+              <span className="text-base font-bold tracking-tight text-slate-900">
+                Doc<span className="text-teal-600">Mate</span>
               </span>
             </Link>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg text-white/50 hover:text-white
-                       hover:bg-white/8 transition-colors duration-200"
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-700
+                       hover:bg-slate-100 transition-colors duration-200"
           >
             {isCollapsed ? <Menu size={18} /> : <X size={18} />}
           </button>
@@ -153,13 +135,13 @@ export default function Sidebar({ onCollapseChange }) {
 
         {/* ── User info ── */}
         <div
-          className={`relative z-10 py-4 border-b border-white/8 shrink-0
-                         ${isCollapsed ? "flex justify-center px-2" : "px-4"}`}
+          className={`py-4 border-b border-slate-100 shrink-0
+                      ${isCollapsed ? "flex justify-center px-2" : "px-4"}`}
         >
           {isCollapsed ? (
             <img
               src={session?.user?.image || "https://i.ibb.co/33gs5fP/user.png"}
-              className="w-9 h-9 rounded-xl object-cover border-2 border-green-400/30"
+              className="w-9 h-9 rounded-xl object-cover border-2 border-slate-200"
               alt="Avatar"
             />
           ) : (
@@ -169,22 +151,22 @@ export default function Sidebar({ onCollapseChange }) {
                   src={
                     session?.user?.image || "https://i.ibb.co/33gs5fP/user.png"
                   }
-                  className="w-10 h-10 rounded-xl object-cover border-2 border-green-400/30"
+                  className="w-10 h-10 rounded-xl object-cover border-2 border-slate-200"
                   alt="Avatar"
                 />
                 <span
                   className="absolute -bottom-0.5 -right-0.5 w-3 h-3
-                                 bg-green-400 rounded-full border-2 border-[#0d2b1f]"
+                                 bg-emerald-400 rounded-full border-2 border-white"
                 />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">
+                <p className="text-sm font-bold text-slate-900 truncate">
                   {session?.user?.name}
                 </p>
                 <span
-                  className={`inline-block mt-1 text-[0.58rem] font-semibold capitalize
-                                  border px-2 py-0.5 rounded-full
-                                  ${roleBadgeColor[role] || "bg-white/10 text-white/60 border-white/10"}`}
+                  className={`inline-block mt-1 text-[0.58rem] font-bold capitalize
+                              border px-2 py-0.5 rounded-full
+                              ${roleBadgeColor[role] || "bg-slate-100 text-slate-500 border-slate-200"}`}
                 >
                   {role}
                 </span>
@@ -194,10 +176,10 @@ export default function Sidebar({ onCollapseChange }) {
         </div>
 
         {/* ── Nav links ── */}
-        <nav className="relative z-10 flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {!isCollapsed && (
             <p
-              className="text-[0.58rem] font-semibold text-white/30 uppercase
+              className="text-[0.58rem] font-bold text-slate-400 uppercase
                           tracking-widest px-3 pt-1 pb-2.5"
             >
               Navigation
@@ -213,38 +195,35 @@ export default function Sidebar({ onCollapseChange }) {
                   title={isCollapsed ? link.name : undefined}
                   className={`
                     relative flex items-center gap-3 px-3 py-2.5 rounded-xl
-                    transition-all duration-200 cursor-pointer overflow-hidden
+                    transition-all duration-200 cursor-pointer
                     ${isCollapsed ? "justify-center" : ""}
                     ${
                       isActive
-                        ? "bg-green-400/15 text-white"
-                        : "text-white/50 hover:text-white hover:bg-white/6"
+                        ? "bg-teal-50 text-teal-700"
+                        : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                     }
                   `}
                 >
-                  {/* Active left border accent */}
+                  {/* Active left border */}
                   {isActive && (
                     <span
                       className="absolute left-0 top-1/2 -translate-y-1/2
-                                     w-0.75 h-[60%] bg-green-400 rounded-full"
+                                     w-0.5 h-[60%] bg-teal-600 rounded-full"
                     />
                   )}
 
-                  {/* Icon */}
                   <Icon
-                    className={`w-4.5 h-4.5 shrink-0 transition-colors duration-200
-                    ${isActive ? "text-green-400" : "text-white/40"}`}
+                    className={`w-4.5 h-4.5 shrink-0
+                    ${isActive ? "text-teal-600" : "text-slate-400"}`}
                   />
 
                   {!isCollapsed && (
-                    <>
-                      <span
-                        className={`text-sm font-medium truncate flex-1
-                        ${isActive ? "text-white" : ""}`}
-                      >
-                        {link.name}
-                      </span>
-                    </>
+                    <span
+                      className={`text-sm font-medium truncate flex-1
+                                      ${isActive ? "font-semibold text-teal-700" : ""}`}
+                    >
+                      {link.name}
+                    </span>
                   )}
                 </div>
               </Link>
@@ -256,7 +235,7 @@ export default function Sidebar({ onCollapseChange }) {
             <>
               {!isCollapsed && (
                 <p
-                  className="text-[0.58rem] font-semibold text-white/30 uppercase
+                  className="text-[0.58rem] font-bold text-slate-400 uppercase
                               tracking-widest px-3 pt-4 pb-2.5"
                 >
                   Actions
@@ -267,13 +246,13 @@ export default function Sidebar({ onCollapseChange }) {
                 title={isCollapsed ? "Join as Doctor" : undefined}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                  text-sm font-medium transition-all duration-200 cursor-pointer
-                  bg-green-400/10 border border-green-400/20 text-green-300
-                  hover:bg-green-400/18 hover:border-green-400/35
+                  text-sm font-semibold transition-all duration-200 cursor-pointer
+                  bg-teal-50 border border-teal-200 text-teal-700
+                  hover:bg-teal-100 hover:border-teal-300
                   ${isCollapsed ? "justify-center" : ""}
                 `}
               >
-                <FaUserDoctor className="w-4.5 h-4.5 text-green-400 shrink-0" />
+                <FaUserDoctor className="w-4 h-4 text-teal-600 shrink-0" />
                 {!isCollapsed && "Join as Doctor"}
               </button>
             </>
@@ -281,14 +260,14 @@ export default function Sidebar({ onCollapseChange }) {
         </nav>
 
         {/* ── Logout ── */}
-        <div className="relative z-10 p-3 border-t border-white/8 shrink-0">
+        <div className="p-3 border-t border-slate-100 shrink-0">
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             title={isCollapsed ? "Logout" : undefined}
             className={`
               cursor-pointer w-full flex items-center gap-3 px-3 py-2.5 text-sm
               font-medium rounded-xl transition-all duration-200
-              text-white/40 hover:text-red-300 hover:bg-red-400/10
+              text-slate-400 hover:text-rose-600 hover:bg-rose-50
               ${isCollapsed ? "justify-center" : ""}
             `}
           >
@@ -307,7 +286,7 @@ export default function Sidebar({ onCollapseChange }) {
       {/* Mobile overlay */}
       {!isCollapsed && isMobile && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity duration-300"
           onClick={() => setIsCollapsed(true)}
         />
       )}
