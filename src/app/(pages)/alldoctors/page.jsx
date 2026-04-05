@@ -137,7 +137,10 @@ const DoctorPage = () => {
                 {/* Image */}
                 <div className="relative h-56 overflow-hidden bg-gray-100">
                   <Image
-                    src={doctor.doctorImageUrl || "/placeholder-doctor.jpg"}
+                    src={
+                      doctor?.doctorImageUrl ||
+                      "https://img.icons8.com/?size=100&id=41799&format=png&color=000000"
+                    }
                     alt={doctor.name}
                     fill
                     className="object-cover object-top group-hover:scale-105
