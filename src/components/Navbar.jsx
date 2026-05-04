@@ -71,6 +71,7 @@ export default function Navbar() {
               Doc<span>Mate</span>
             </span>
           </Link>
+          {/*  */}
 
           {/* ── Desktop links ── */}
           <div className="hidden md:flex items-center gap-0.5">
